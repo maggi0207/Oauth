@@ -9,6 +9,8 @@ root.render(
     clientId="Zqv9eeUGemMdYTVTPB45WHxdb6fMQaYA"
     authorizationParams={{
       redirect_uri: window.location.origin,
+      audience: process.env.REACT_APP_AUTH0_AUDIENCE,
+      scope: "openid profile email",
     }}
   >
     <App />

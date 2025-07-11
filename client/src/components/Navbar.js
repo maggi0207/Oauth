@@ -1,27 +1,49 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
+import { useRoleAuth } from '../hooks/useRoleAuth';
+import RoleGuard from './RoleGuard';
 
 const Navbar = () => {
-  const { isAuthenticated, user, loginWithRedirect, logout, isLoading } = useAuth0();
+  const { isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
+  const { user, userRoles } = useRoleAuth();
 
   return (
     <nav style={styles.nav}>
       <div>
-        <Link to="/" style={styles.link}> Home </Link>
-        <Link to="/UBMediaUpdates" style={styles.link}> Updates </Link>
+        <Link to="/" style={styles.link}>Home</Link>
+        <Link to="/UBMediaUpdates" style={styles.link}>Updates</Link>
+
         {isAuthenticated && (
-          <Link to="/UBMOperations" style={styles.link}> Operations Update </Link>
+          <Link to="/UBMOperations" style={styles.link}>Operations</Link>
         )}
+
+        <RoleGuard roles={['admin']}>
+          <Link to="/admin" style={styles.link}>Admin Panel</Link>
+        </RoleGuard>
+
+        <RoleGuard roles={['manager', 'admin']}>
+          <Link to="/management" style={styles.link}>Management</Link>
+        </RoleGuard>
+
+        <RoleGuard roles={['hr']}>
+          <Link to="/employees" style={styles.link}>Employee Management</Link>
+        </RoleGuard>
       </div>
 
       <div style={styles.authBlock}>
         {!isLoading && isAuthenticated && (
-          <span style={styles.user}> {user?.name || user?.email}</span>
+          <div>
+            <span style={styles.user}>{user?.name || user?.email}</span>
+            {userRoles.length > 0 && (
+              <span style={{ fontSize: '0.8rem', color: '#777' }}>
+                ({userRoles.join(', ')})
+              </span>
+            )}
+          </div>
         )}
+
         {!isAuthenticated ? (
-          <button style={styles.button} onClick={() => loginWithRedirect()}>
-            Login
-          </button>
+          <button style={styles.button} onClick={() => loginWithRedirect()}>Login</button>
         ) : (
           <button
             style={styles.button}

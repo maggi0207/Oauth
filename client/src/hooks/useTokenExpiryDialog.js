@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 
 export const useTokenExpiryDialog = () => {
-  const { logout, getAccessTokenSilently, getIdTokenClaims, isAuthenticated } = useAuth0();
-
+  const { logout, getAccessTokenSilently, user, getIdTokenClaims, isAuthenticated } = useAuth0();
+console.log('[Token user]', user);
   const [showDialog, setShowDialog] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(60);
 

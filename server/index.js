@@ -1,3 +1,4 @@
+// ✅ Updated backend to support Auth0 Management API role-based token inspection
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
@@ -12,7 +13,7 @@ app.use(
   })
 );
 
-// Helper: Get Management API token
+// ✅ Helper: Get Management API token
 async function getManagementToken() {
   try {
     const options = {
@@ -30,27 +31,72 @@ async function getManagementToken() {
     const response = await axios.request(options);
     return response.data.access_token;
   } catch (err) {
-    console.error("Error fetching management token:", err.response?.data || err.message);
+    console.error(" Error fetching management token:", err.response?.data || err.message);
     throw err;
   }
 }
 
-// Route: Get Auth0 user details by user_id
+// ✅ Route: Get Auth0 user details by user_id
 app.get("/api/user/:userId", async (req, res) => {
   try {
     const token = await getManagementToken();
     const userId = req.params.userId;
-    const userRes = await axios.get(`https://${process.env.AUTH0_DOMAIN}/api/v2/users/${encodeURIComponent(userId)}`, { headers: { Authorization: `Bearer ${token}` } });
+
+    const userRes = await axios.get(
+      `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${encodeURIComponent(userId)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
     const { last_login, logins_count, last_ip, ...rest } = userRes.data;
     res.json({ last_login, logins_count, last_ip, ...rest });
   } catch (err) {
-    console.error("Error fetching user details:", err.response?.data || err.message);
+    console.error("❌ Error fetching user details:", err.response?.data || err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Start server
+// ✅ Role validation middleware (optional backend use)
+const jwt = require("express-jwt");
+const jwksRsa = require("jwks-rsa");
+
+const checkJwt = jwt({
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
+  }),
+  audience: process.env.AUTH0_AUDIENCE,
+  issuer: `https://${process.env.AUTH0_DOMAIN}/`,
+  algorithms: ["RS256"],
+});
+
+const requireRole = (roles) => {
+  return (req, res, next) => {
+    const userRoles = req.user["https://ubmedia.com/roles"] || [];
+    const hasRole = roles.some((role) => userRoles.includes(role));
+    if (!hasRole) {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+    next();
+  };
+};
+
+// Example secured routes
+app.get("/api/admin", checkJwt, requireRole(["admin"]), (req, res) => {
+  res.json({ message: "Admin-only data." });
+});
+
+app.get("/api/management", checkJwt, requireRole(["manager", "admin"]), (req, res) => {
+  res.json({ message: "Management access data." });
+});
+
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
