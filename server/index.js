@@ -26,3 +26,11 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+<!DOCTYPE html>
+<html>
+<body>
+  <input type="text">
+  <button onclick="console.log('clicked')">Button</button>
+</body>
+</html>
