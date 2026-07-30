@@ -30,3 +30,19 @@ npm create vite@latest react-lag-test -- --template react-ts
 cd react-lag-test
 npm install
 npm run dev
+
+npm install -g @angular/cli
+
+Create a new app:
+
+ng new angular-lag-test
+
+Choose:
+
+CSS
+No SSR
+
+Run it:
+
+cd angular-lag-test
+ng serve
