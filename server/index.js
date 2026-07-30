@@ -26,11 +26,7 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-<!DOCTYPE html>
-<html>
-<body>
-  <input type="text">
-  <button onclick="console.log('clicked')">Button</button>
-</body>
-</html>
+npm create vite@latest react-lag-test -- --template react-ts
+cd react-lag-test
+npm install
+npm run dev
