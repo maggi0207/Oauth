@@ -1,29 +1,23 @@
-import React, { useState } from "react";
+<input
+  [value]="value"
+  (input)="value = $any($event.target).value"
+/>
 
-const App: React.FC = () => {
-  const [rollDay, setRollDay] = useState(10);
-  const [count, setCount] = useState(0);
+<button (click)="count = count + 1">
+  Count: {{ count }}
+</button>
+Replace app.component.ts with:
+import { Component } from '@angular/core';
 
-  return (
-    <>
-      <input
-        id="roll-day-input"
-        type="number"
-        value={rollDay}
-        onChange={(e) => setRollDay(Number(e.target.value))}
-      />
-
-      <button
-        onClick={() => {
-          console.log("Button clicked");
-          setCount((c) => c + 1);
-        }}
-      >
-        Count: {count}
-      </button>
-    </>
-  );
-};
+@Component({
+  selector: 'app-root',
+  standalone: false,
+  templateUrl: './app.component.html'
+})
+export class AppComponent {
+  value = '';
+  count = 0;
+}
 
 export default App;
 npm create vite@latest react-lag-test -- --template react-ts
