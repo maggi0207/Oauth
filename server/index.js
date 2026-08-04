@@ -1,59 +1,56 @@
-The overall popup layout is now correct across all desktop resolutions.
+The overall dialog layout is correct.
 
-Please DO NOT modify the dialog width, height, or overall layout anymore.
+There are two remaining visual alignment issues.
 
-There is one remaining UI issue inside the form.
+Issue 1 (Most Important)
 
-## Issue
+The bordered section containers have insufficient top padding.
 
-The form controls are too tightly packed.
+The first form row inside each section starts too close to the section header.
 
-Compared to the original design, there is not enough spacing between consecutive text fields and dropdowns.
+This is NOT an input spacing issue.
 
-The UI looks compressed.
+This is NOT a label spacing issue.
 
-## Expected
-
-Increase the vertical spacing between form controls slightly.
+This is a section container padding issue.
 
 Examples:
 
-- Customer → Strategy
-- Strategy → Call/Put
-- Buy/Sell → Exercise Type
-- Trade Date → Expiry Date
-- Avg. Frequency → Roll Day
+- Product Definition
+- Lifecycle Dates
+- Trade Economics
+- Market Conventions
+- Asian Strategy
 
-Every field should have a small amount of breathing room similar to the original design.
+The first form row (label + control) should start slightly lower, matching the original design.
 
-Do NOT make the spacing excessive.
+Please inspect the section/card container padding rather than modifying individual input margins.
 
-The goal is to match the original enterprise UI.
+Issue 2
 
-## Requirements
+The vertical spacing between stacked sections in the middle column is inconsistent.
 
-- Keep the current dialog size unchanged.
-- Keep column widths unchanged.
-- Keep font sizes unchanged.
-- Keep input heights unchanged.
-- Keep section positions unchanged.
-- Only adjust spacing between controls.
+Specifically:
 
-Inspect:
+Lifecycle Dates
+↓
 
-- Material UI Grid spacing
-- Stack spacing
-- rowGap
-- columnGap
-- margin-bottom
-- FormControl margins
-- Shared FormFields component
-- detailsShared.tsx spacing utilities
+Market Conventions
+↓
 
-Use the existing design system spacing tokens if available.
+Asian Strategy
 
-Target a subtle increase (approximately 4–8px) in vertical spacing between controls.
+There is extra whitespace between Market Conventions and Asian Strategy.
 
-Do not introduce additional whitespace at the bottom of sections or around the dialog.
+Use a consistent vertical gap between stacked sections.
 
-The result should look closer to the original design while preserving the current responsive layout.
+Do not change:
+
+- Dialog size
+- Column widths
+- Typography
+- Input heights
+- Responsive behavior
+- Business logic
+
+Only correct the internal section padding and vertical alignment so the layout matches the original UI.
