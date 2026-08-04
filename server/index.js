@@ -1,193 +1,52 @@
-You are a Senior React UI Architect specializing in enterprise trading platforms.
+## Additional Issue - Excess Empty Space at the Bottom
 
-## Objective
+There is a large unused white space below the form content and above the footer (Cancel / Save Trade).
 
-Investigate and permanently fix the desktop layout issue in the **AsianTradeDialog** popup.
+This empty area is visible on all desktop resolutions and becomes more noticeable on larger monitors.
 
-The issue occurs inside the **AsianTradeDetailsTab.tsx** component.
+Expected behavior:
 
-This is NOT a mobile responsive issue.
+- The form content should occupy the available vertical space.
+- The footer should sit immediately below the content with consistent spacing.
+- There should not be a large blank region between the last form section and the footer.
+- The popup should feel compact and balanced.
 
-The popup looks correct on a 1920px monitor but becomes visually inconsistent on larger desktop resolutions (2400, 2560, 3440, 4K).
+Investigate the root cause instead of hiding it with CSS.
 
-I want you to perform a root cause analysis before making any code changes.
+Specifically inspect:
 
----
-
-## Components to Investigate
-
-Start from the popup entry point and trace the complete rendering hierarchy.
-
-ActionsMenu
-└── AsianTradeDialog
-    ├── AsianTradeDetailsTab.tsx   ← Primary focus
-    ├── AveragingScheduleTab.tsx
-    ├── AuditTrailTab.tsx
-    ├── detailsShared.tsx
-    └── FormFields.tsx
-
-Also inspect any shared layout components, wrappers, hooks, CSS modules, theme files, styled components, utility classes, and Material UI components used by these files.
-
----
-
-## Investigation Checklist
-
-Trace the layout from the Dialog root down to every section.
-
-Identify:
-
-- Dialog width calculation
-- Parent container constraints
-- Nested wrappers
-- CSS Grid configuration
-- Flexbox configuration
-- Material UI Grid/Stack/Box usage
-- Shared FormField layout
-- detailsShared layout helpers
-- Width propagation
-- Overflow behavior
-- Scroll container
-- Theme spacing
-- Responsive breakpoints
-- Shared enterprise layout utilities
-
-Determine exactly how width is inherited through the component tree.
-
----
-
-## Specifically Look For
-
-Search for:
-
-- width: 100%
-- max-width
-- min-width
-- flex: 1
+- Dialog height calculation
+- DialogContent height
+- Parent container height
+- display:flex layouts
+- flex-direction
 - flex-grow
-- flex-basis
-- justify-content: space-between
-- align-stretch
-- grid-template-columns
-- auto-fit
-- auto-fill
-- minmax()
-- percentage widths
-- viewport units (vw)
-- Dialog maxWidth/fullWidth props
-- container width calculations
-- unnecessary wrapper divs
-- inherited CSS rules
-- reusable layout abstractions
+- justify-content
+- align-content
+- min-height
+- max-height
+- height:100%
+- overflow:auto
+- overflow-y
+- Material UI DialogContent styles
+- Any wrapper adding unnecessary vertical space
+- CSS Grid rows
+- Grid row sizing
+- Fixed heights on parent containers
 
-Do not assume the issue is inside AsianTradeDetailsTab.
+Determine whether:
 
-The root cause may exist in:
+- The dialog has an unnecessary fixed height.
+- A wrapper is using flex:1 incorrectly.
+- Grid rows are consuming extra height.
+- The content area is not shrinking correctly.
+- The footer is separated because of an oversized content container.
 
-- AsianTradeDialog
-- detailsShared.tsx
-- FormFields.tsx
-- Shared layout components
-- Global styles
-- Theme configuration
+The solution should remove the unnecessary bottom whitespace by fixing the layout architecture, not by reducing padding or applying arbitrary height values.
 
----
+After the fix:
 
-## Current Problem
-
-On high-resolution monitors:
-
-- Popup stretches too much.
-- Left and middle columns become too wide.
-- Trade Summary moves too far away.
-- Inputs become excessively wide.
-- White space increases significantly.
-- Section alignment changes.
-- Overall proportions no longer match the expected enterprise design.
-
----
-
-## Expected Behaviour
-
-Regardless of monitor resolution:
-
-1920
-2400
-2560
-2880
-3440
-3840
-
-The popup should maintain nearly identical proportions.
-
-The dialog should not simply expand because additional screen width is available.
-
-The UI should resemble a professional institutional trading platform where dialogs have stable dimensions and balanced spacing.
-
----
-
-## Do NOT
-
-Do NOT immediately add max-width values.
-
-Do NOT add random media queries.
-
-Do NOT use CSS hacks.
-
-Do NOT use transform: scale().
-
-Do NOT use zoom.
-
-Do NOT hardcode widths without justification.
-
-Every modification must solve the architectural root cause.
-
----
-
-## Deliverables
-
-### Phase 1 - Investigation
-
-Explain:
-
-- Component hierarchy
-- Width propagation
-- Layout architecture
-- Root cause
-- Every problematic container
-- Every problematic CSS rule
-
-### Phase 2 - Solution Design
-
-Explain why the proposed layout architecture fixes the issue.
-
-Explain why it will remain stable across all desktop resolutions.
-
-### Phase 3 - Implementation
-
-Modify only the required files.
-
-Keep business logic untouched.
-
-Maintain existing functionality.
-
-Use modern React and CSS best practices.
-
-### Phase 4 - Validation
-
-Validate the popup at:
-
-- 1920×1080
-- 2560×1440
-- 3440×1440
-- 3840×2160
-
-Confirm:
-
-- Column proportions remain stable.
-- Inputs do not stretch.
-- Trade Summary remains aligned.
-- Consistent spacing.
-- Header and footer remain fixed.
-- No regressions introduced.
-
-Do not finish until the layout has been verified across all supported desktop resolutions.
+✓ The last form section should sit naturally above the footer.
+✓ Footer should remain bottom-aligned.
+✓ Internal scrolling should work if content exceeds available height.
+✓ No excessive blank space should appear at the bottom on 1920, 2560, 3440, or 4K monitors.
