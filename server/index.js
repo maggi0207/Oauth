@@ -1,76 +1,68 @@
-The previous layout fix removed the excessive bottom whitespace, but it introduced a regression in the Averaging Schedule tab.
+The previous layout fix introduced a regression in the AveragingScheduleTab.
 
-Please investigate only the AveragingScheduleTab layout.
+The data is loading correctly.
 
-Current issue:
+Evidence:
+- Schedule Summary shows Total Observations = 12.
+- Footer also shows 12 observations.
+- The API returns the records correctly.
 
-- The Generated Averaging Schedule table no longer occupies the available vertical space.
-- The table container has collapsed.
-- Only a few rows are visible.
-- The footer moved upward.
-- The table should expand instead of shrinking.
+However, the Generated Averaging Schedule grid only displays the column headers.
 
-Expected behavior:
+The table rows are hidden because the grid/container height has collapsed.
 
-The popup should use a proper vertical flex layout.
+This is NOT a data issue.
 
----------------------------------------------------
-Header
-Tabs
+It is a layout issue.
 
-Schedule Generation
+Please investigate the following before making any changes:
 
-Generated Averaging Schedule
-    Toolbar
-    Table
-    (Table fills remaining vertical space)
+1. Verify that the table receives all 12 rows.
+2. Inspect the DataGrid/table container height.
+3. Inspect every parent container from:
+   - AsianTradeDialog
+   - DialogContent
+   - AveragingScheduleTab
+   - Generated Schedule section
+   - Table wrapper
+   - DataGrid/Table component
 
-Footer
----------------------------------------------------
+Look specifically for:
 
-The table should consume all remaining vertical space between the Schedule Generation section and the footer.
-
-Only the table body should scroll.
-
-The footer must always remain visible.
-
-Do NOT fix this using fixed pixel heights.
-
-Do NOT use arbitrary min-height values.
-
-Instead investigate:
-
-- DialogContent layout
-- flex-direction
-- flex-grow
-- flex-basis
-- height:100%
-- min-height:0
-- overflow:auto
+- flex: 1 removed
+- min-height: 0 missing
+- height: 100% changed
+- overflow: hidden
+- overflow: auto
+- display: flex
+- flex-direction: column
 - CSS Grid row sizing
-- DataGrid/Table container sizing
-- Parent container constraints
+- auto vs 1fr rows
+- DialogContent height changes
+- Parent container collapsing
+- Table wrapper shrinking to header height
 
-Verify whether:
-
-- The table wrapper lost flex:1.
-- A parent flex container changed to auto height.
-- A min-height:0 is missing.
-- The DialogContent no longer fills available height.
-- The table container is no longer participating in flex layout.
-
-The correct layout should be:
+Expected layout:
 
 Dialog
  ├── Header
  ├── Tabs
- ├── Content (display:flex; flex-direction:column)
- │      ├── Schedule Generation (auto height)
- │      └── Generated Schedule (flex:1; min-height:0)
- │              ├── Toolbar
- │              └── Table (fills remaining height)
+ ├── Schedule Generation (auto height)
+ ├── Generated Averaging Schedule
+ │      ├── Toolbar
+ │      └── Data Grid (fills remaining space)
  └── Footer
 
-Please perform a root cause analysis before modifying the code.
+The grid should consume all remaining vertical space.
 
-Do not reintroduce the previous excessive bottom whitespace while fixing the table height.
+Only the grid body should scroll.
+
+The footer should remain fixed.
+
+Do NOT fix this by assigning arbitrary pixel heights.
+
+Do NOT use fixed heights.
+
+Restore the proper flex/grid layout so the DataGrid automatically fills the available space.
+
+Before changing code, explain exactly which parent container is collapsing and why the grid body height becomes zero while the header remains visible.
