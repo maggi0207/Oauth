@@ -1,22 +1,59 @@
-Keep the existing proportions of the UI.
+The overall popup layout is now correct across all desktop resolutions.
 
-Do NOT resize individual controls such as:
+Please DO NOT modify the dialog width, height, or overall layout anymore.
 
-- Text boxes
-- Dropdowns
-- Date pickers
-- Buttons
-- Labels
-- Font sizes
+There is one remaining UI issue inside the form.
 
-Maintain the approved 1920px proportions.
+## Issue
 
-Instead, adjust the fixed dialog dimensions accordingly so the content fits naturally without excessive whitespace.
+The form controls are too tightly packed.
 
-The dialog should be just large enough to accommodate the content while maintaining comfortable spacing.
+Compared to the original design, there is not enough spacing between consecutive text fields and dropdowns.
 
-Avoid oversized empty areas at the bottom or beside the Trade Summary panel.
+The UI looks compressed.
 
-The dialog should remain centered with fixed desktop dimensions, and only the content area should scroll when necessary.
+## Expected
 
-The goal is to preserve the existing UI proportions rather than scaling or shrinking individual elements.
+Increase the vertical spacing between form controls slightly.
+
+Examples:
+
+- Customer → Strategy
+- Strategy → Call/Put
+- Buy/Sell → Exercise Type
+- Trade Date → Expiry Date
+- Avg. Frequency → Roll Day
+
+Every field should have a small amount of breathing room similar to the original design.
+
+Do NOT make the spacing excessive.
+
+The goal is to match the original enterprise UI.
+
+## Requirements
+
+- Keep the current dialog size unchanged.
+- Keep column widths unchanged.
+- Keep font sizes unchanged.
+- Keep input heights unchanged.
+- Keep section positions unchanged.
+- Only adjust spacing between controls.
+
+Inspect:
+
+- Material UI Grid spacing
+- Stack spacing
+- rowGap
+- columnGap
+- margin-bottom
+- FormControl margins
+- Shared FormFields component
+- detailsShared.tsx spacing utilities
+
+Use the existing design system spacing tokens if available.
+
+Target a subtle increase (approximately 4–8px) in vertical spacing between controls.
+
+Do not introduce additional whitespace at the bottom of sections or around the dialog.
+
+The result should look closer to the original design while preserving the current responsive layout.
