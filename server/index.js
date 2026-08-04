@@ -1,52 +1,76 @@
-## Additional Issue - Excess Empty Space at the Bottom
+The previous layout fix removed the excessive bottom whitespace, but it introduced a regression in the Averaging Schedule tab.
 
-There is a large unused white space below the form content and above the footer (Cancel / Save Trade).
+Please investigate only the AveragingScheduleTab layout.
 
-This empty area is visible on all desktop resolutions and becomes more noticeable on larger monitors.
+Current issue:
+
+- The Generated Averaging Schedule table no longer occupies the available vertical space.
+- The table container has collapsed.
+- Only a few rows are visible.
+- The footer moved upward.
+- The table should expand instead of shrinking.
 
 Expected behavior:
 
-- The form content should occupy the available vertical space.
-- The footer should sit immediately below the content with consistent spacing.
-- There should not be a large blank region between the last form section and the footer.
-- The popup should feel compact and balanced.
+The popup should use a proper vertical flex layout.
 
-Investigate the root cause instead of hiding it with CSS.
+---------------------------------------------------
+Header
+Tabs
 
-Specifically inspect:
+Schedule Generation
 
-- Dialog height calculation
-- DialogContent height
-- Parent container height
-- display:flex layouts
+Generated Averaging Schedule
+    Toolbar
+    Table
+    (Table fills remaining vertical space)
+
+Footer
+---------------------------------------------------
+
+The table should consume all remaining vertical space between the Schedule Generation section and the footer.
+
+Only the table body should scroll.
+
+The footer must always remain visible.
+
+Do NOT fix this using fixed pixel heights.
+
+Do NOT use arbitrary min-height values.
+
+Instead investigate:
+
+- DialogContent layout
 - flex-direction
 - flex-grow
-- justify-content
-- align-content
-- min-height
-- max-height
+- flex-basis
 - height:100%
+- min-height:0
 - overflow:auto
-- overflow-y
-- Material UI DialogContent styles
-- Any wrapper adding unnecessary vertical space
-- CSS Grid rows
-- Grid row sizing
-- Fixed heights on parent containers
+- CSS Grid row sizing
+- DataGrid/Table container sizing
+- Parent container constraints
 
-Determine whether:
+Verify whether:
 
-- The dialog has an unnecessary fixed height.
-- A wrapper is using flex:1 incorrectly.
-- Grid rows are consuming extra height.
-- The content area is not shrinking correctly.
-- The footer is separated because of an oversized content container.
+- The table wrapper lost flex:1.
+- A parent flex container changed to auto height.
+- A min-height:0 is missing.
+- The DialogContent no longer fills available height.
+- The table container is no longer participating in flex layout.
 
-The solution should remove the unnecessary bottom whitespace by fixing the layout architecture, not by reducing padding or applying arbitrary height values.
+The correct layout should be:
 
-After the fix:
+Dialog
+ ├── Header
+ ├── Tabs
+ ├── Content (display:flex; flex-direction:column)
+ │      ├── Schedule Generation (auto height)
+ │      └── Generated Schedule (flex:1; min-height:0)
+ │              ├── Toolbar
+ │              └── Table (fills remaining height)
+ └── Footer
 
-✓ The last form section should sit naturally above the footer.
-✓ Footer should remain bottom-aligned.
-✓ Internal scrolling should work if content exceeds available height.
-✓ No excessive blank space should appear at the bottom on 1920, 2560, 3440, or 4K monitors.
+Please perform a root cause analysis before modifying the code.
+
+Do not reintroduce the previous excessive bottom whitespace while fixing the table height.
