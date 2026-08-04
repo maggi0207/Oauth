@@ -1,79 +1,55 @@
-The current approach of making the dialog fluid across different desktop resolutions is causing layout inconsistencies.
+The previous implementation is incorrect.
 
-Instead, implement a fixed desktop layout for the AsianTradeDialog.
+The dialog is now expanding to almost the full screen.
 
-## Goal
-
-The dialog should look visually identical on:
-
-- 1920×1080
-- 2560×1440
-- 2880×1800
-- 3440×1440
-- 3840×2160
-
-The dialog should NOT continue stretching as the monitor width increases.
-
-Only the surrounding page should become larger.
-
-The dialog should remain centered with the same proportions, spacing, typography, and control sizes.
+This is NOT the expected behavior.
 
 ## Requirements
 
-Use a fixed or constrained dialog width.
+The AsianTradeDialog must remain a centered modal dialog.
 
-Example:
+Do NOT convert it into a full-screen dialog.
 
-- Fixed desktop width (based on the current approved 1920px design)
-- max-width: 95vw so it still fits on smaller screens
-- Appropriate fixed height/max-height with internal scrolling
+Do NOT use:
 
-The dialog should maintain:
+- fullScreen
+- width: 100%
+- height: 100%
+- maxWidth={false} with width:100%
+- Paper width: 100%
+- 100vw
+- 100vh
 
-- Same font sizes
-- Same textbox widths
-- Same textbox heights
-- Same dropdown sizes
-- Same button sizes
-- Same section spacing
-- Same margins
-- Same paddings
-- Same three-column proportions
-- Same Trade Summary width
+The dialog should retain approximately the same size as the current approved 1920px design.
 
-Do NOT allow controls to become larger on bigger monitors.
+Only prevent it from stretching on larger monitors.
 
-Do NOT allow additional whitespace between sections.
+## Desired Behavior
 
-Do NOT allow columns to stretch.
+- Dialog remains centered.
+- Dialog keeps nearly the same width as on a 1920px monitor.
+- On larger monitors, extra screen space remains outside the dialog.
+- Internal layout remains unchanged.
+- Font sizes remain unchanged.
+- Textbox sizes remain unchanged.
+- Spacing remains unchanged.
+- Three-column layout remains unchanged.
 
-## Scrolling
+The goal is to constrain the dialog's maximum width, **not** make it fill the screen.
 
-- Header must remain fixed.
-- Footer must remain fixed.
-- Only the dialog content should scroll if necessary.
-- Tables (Generated Averaging Schedule and Audit Trail) should correctly fill the available space and manage their own scrolling.
-- No unnecessary horizontal or vertical scrollbars.
+## Before making changes
 
-## Important
+Inspect the Material UI Dialog configuration and identify why it is expanding to full screen.
 
-Do not redesign the UI.
+Only update the Dialog/Paper sizing configuration.
 
-Do not modify business logic.
+Do not modify the internal layout unless absolutely necessary.
 
-Do not modify functionality.
-
-Do not change component behavior.
-
-Only refactor the dialog layout so that it uses a stable desktop width while preserving the approved 1920px layout.
-
-Before implementing, identify the current Dialog component (Material UI Dialog/Paper) and update its sizing strategy so the dialog behaves as a fixed desktop dialog rather than a fluid responsive dialog.
-
-After implementation, validate that the dialog appears visually identical on:
+After implementation, verify that the dialog remains centered and has approximately the same dimensions on:
 
 - 1920×1080
 - 2560×1440
 - 3440×1440
 - 3840×2160
 
-The implementation is complete only if there is no noticeable difference in spacing, font size, control size, or overall layout between these desktop resolutions.
+The dialog should never appear as a full-screen window.
