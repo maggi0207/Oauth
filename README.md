@@ -1,3 +1,3 @@
-cd publish
-$env:ASPNETCORE_ENVIRONMENT="Production"
-dotnet EqdTradingApi.dll
+"ConnectionStrings": {
+  "DefaultConnection": "Server=localhost;Database=EqdTradingDb;Trusted_Connection=True;TrustServerCertificate=True;"
+}
