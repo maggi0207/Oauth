@@ -1,1 +1,1 @@
-Get-Content "C:\Repo\WorkerWeb\Libs\WorkerWeb\BusinessLogic\Dhss.Assist.WorkerWeb.BusinessLogic.csproj" | Select-String "<ProjectReference"
+Get-Content "C:\Repo\WorkerWeb\Websites\WorkerWeb\Dhss.Assist.WorkerWeb.Web.csproj" | Select-String "<Reference Include"
