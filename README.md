@@ -1,27 +1,11 @@
-Here’s a cleaner and more structured version:
+Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
+    $project = $_
+    [xml]$xml = Get-Content $project.FullName
 
-Pending Items
-Update the Record Date.
-Add a Save confirmation popup/message for communication.
-Validate all page-level errors.
-Implement date validation as per the documented requirements.
-Database: DSS_WorkerWeb_DEV3
-Table name: TBD
-Route / Navigation
-
-Home → Case & Client → Click Search in the table → Case Summary → Click Application Entry → Community Engagement → Community Engagement Summary → Click Search in the table → communityengagementdetails.aspx
-
-Related Database Tables
-SELECT * FROM CommunityEngagementSummary_T;
-
-
-SELECT * FROM CommunityEngagement_T;
-
-
-SELECT * FROM CommunityEngagementMedicalDetails_T;
-
-
-SELECT * FROM CommunityEngagementHardshipWaiver_T;
-Key Screen
-
-communityengagementdetails.aspx
+    foreach ($ref in $xml.Project.ItemGroup.ProjectReference) {
+        if ($ref.Include) {
+            $target = Split-Path $ref.Include -Leaf
+            Write-Output "$($project.BaseName)  -->  $([System.IO.Path]::GetFileNameWithoutExtension($target))"
+        }
+    }
+}
