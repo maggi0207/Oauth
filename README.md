@@ -1,1 +1,1 @@
-Get-ChildItem -Recurse -Filter *.csproj | Select-Object -ExpandProperty FullName
+Get-ChildItem C:\Repo\WorkerWeb -Recurse -Filter *.csproj | Select-String -Pattern '<ProjectReference'
