@@ -590,6 +590,7 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
             bool scheduleVolunteering = IsYes(cbWorkProgram) || IsYes(cbUnpaidWork);
             ScheduleVolunteeringWorkProgramPage(scheduleVolunteering);
             SetPageComplete();
+            SetPageComplete(IntakeConstants.COMMUNITYENGAGEMENT_SUMMARY_AE, true);
         }
 
         /// <summary>
@@ -903,16 +904,49 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         {
             ScheduleVolWorkUnPaidScreen = schedule;
             string pageName = IntakeConstants.VOLUNTEERING_WORK_PROGRAM_UNPAID_WORK_SUMMARY_AE;
-            var volunteeringPage = WorkflowSession.Instance.CurrentFrame.Workflow.Children
-                .FirstOrDefault(n => n.Name == pageName);
-            if (volunteeringPage != null)
-            {
-                volunteeringPage.Visible = schedule;
-            }
+            SetWorkflowPageVisible(pageName, schedule);
             if (schedule)
             {
                 SetPageComplete(pageName, false);
             }
+        }
+
+        private void SetWorkflowPageVisible(string pageName, bool visible)
+        {
+            if (TrySetWorkflowPageVisible(WorkflowSession.Instance.CurrentFrame.Workflow.Children, pageName, visible))
+            {
+                return;
+            }
+            TrySetWorkflowPageVisible(WorkflowSession.Instance.RootFrame.Workflow.Children, pageName, visible);
+        }
+
+        private static bool TrySetWorkflowPageVisible(System.Collections.IEnumerable children, string pageName, bool visible)
+        {
+            if (children == null)
+            {
+                return false;
+            }
+            foreach (var child in children)
+            {
+                var nameProperty = child.GetType().GetProperty("Name");
+                var visibleProperty = child.GetType().GetProperty("Visible");
+                var childName = nameProperty == null ? null : nameProperty.GetValue(child, null) as string;
+                if (string.Equals(childName, pageName, StringComparison.Ordinal))
+                {
+                    if (visibleProperty != null)
+                    {
+                        visibleProperty.SetValue(child, visible, null);
+                    }
+                    return true;
+                }
+                var childrenProperty = child.GetType().GetProperty("Children");
+                var nested = childrenProperty == null ? null : childrenProperty.GetValue(child, null) as System.Collections.IEnumerable;
+                if (TrySetWorkflowPageVisible(nested, pageName, visible))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
