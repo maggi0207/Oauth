@@ -75,7 +75,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         /// <param name="e"></param>View
         protected void Page_Load(object sender, EventArgs e)
         {
-            SyncCurrentRecordWithWorkflowAnchor();
             Master.Master.FooterSectionConfigure(FooterBodyConfiguration.AddnoteSavePreviousNext);
             if (!IsPostBack)
             {
@@ -114,23 +113,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         private void RefreshAnchorObject(object sender, EventArgs e)
         {
 
-        }
-
-        /// <summary>
-        /// base.NavigateNext() moves the workflow cursor to the next person in context and reloads
-        /// this page, but every FormView here selects on CommunityEngagementSummaryID from session.
-        /// Without realigning the two, the same record is rendered again and Next looks like a
-        /// plain refresh.
-        /// </summary>
-        private void SyncCurrentRecordWithWorkflowAnchor()
-        {
-            if (this.AnchorObject.IsNull()) return;
-
-            int anchorSummaryId = Convert.ToInt32(this.AnchorObject.CommunityEngagementSummaryID);
-            if (anchorSummaryId != 0 && anchorSummaryId != TechnicalSessionContext.Instance.CommunityEngagementSummaryID)
-            {
-                TechnicalSessionContext.Instance.CommunityEngagementSummaryID = anchorSummaryId;
-            }
         }
 
         /// <summary>
@@ -744,18 +726,13 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         }
 
         /// <summary>
-        /// Completes the Community Engagement summary when every person in context is done,
-        /// same pattern as Tax Dependency SetSummaryPageComplete.
+        /// Checks off Community Engagement in the left menu as soon as the record is saved. The
+        /// summary is completed by name because IsContextComplete() only turns true once every
+        /// person on the case is done, and Next no longer walks through them.
         /// </summary>
         private void SetSummaryPageComplete()
         {
-            if (CurrentWorkflowPage != null
-                && CurrentWorkflowPage.Context != null
-                && CurrentWorkflowPage.Context.Value != null
-                && CurrentWorkflowPage.Context.Value.IsContextComplete())
-            {
-                SetPreviousPageComplete(true);
-            }
+            SetPageComplete(IntakeConstants.COMMUNITYENGAGEMENT_SUMMARY_AE, true);
         }
 
         /// <summary>
@@ -1025,13 +1002,7 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         /// </summary>
         protected void PopupHardshipWaiverPendingApproval_WindowCallback(object source, DevExpress.Web.ASPxPopupControl.PopupWindowCallbackArgs e)
         {
-            if (e.Parameter != "save")
-            {
-                // Dismissing the popup must disarm Next, otherwise the flag survives in session
-                // and the following Next click is swallowed waiting for a popup that never shows.
-                NavigateNextPending = false;
-                return;
-            }
+            if (e.Parameter != "save") return;
 
             var caseRemarkDetails = new CaseRemarkDetails
             {
@@ -1059,15 +1030,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
             catch (Exception ex)
             {
                 Debug.WriteLine("HW> SaveCaseRemark failed: " + ex.Message);
-            }
-
-            // Resume even when the case remark could not be saved, so Next is never stuck.
-            if (NavigateNextPending)
-            {
-                NavigateNextPending = false;
-                // Response.Redirect and base.NavigateNext() write to a response that the callback
-                // never sends, so the browser stays put. RedirectOnCallback is the only way out.
-                DevExpress.Web.ASPxClasses.ASPxWebControl.RedirectOnCallback(ResolveNextPageUrl());
             }
         }
 
@@ -1102,28 +1064,13 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         private bool _pageValidationFailed;
 
         /// <summary>
-        /// Navigates to next active record if it exists in context else the summary page,
-        /// same as Tax Dependency Details.
+        /// Leaves Details for the next page in the workflow. base.NavigateNext() is deliberately
+        /// not used: on a detail page it steps to the next record in context and reloads this same
+        /// page instead of moving forward.
         /// </summary>
         public override void NavigateNext()
         {
             if (_pageValidationFailed) return;
-
-            // Only wait when the hardship waiver popup is really on screen; otherwise Next would stall.
-            if (_showHardshipWaiverPopup && popupHardshipWaiverPendingApproval.ShowOnPageLoad)
-            {
-                NavigateNextPending = true;
-                return;
-            }
-            ResumeNavigation();
-        }
-        private void ResumeNavigation()
-        {
-            base.NavigateNext();
-
-            // base.NavigateNext() silently does nothing when the workflow cannot resolve the
-            // next page from this frame, which leaves the worker stranded on Details.
-            if (Response.IsRequestBeingRedirected) return;
 
             Response.Redirect(ResolveNextPageUrl());
         }
@@ -1140,21 +1087,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                 else
                 {
                     Session.Remove("CE_ScheduleVolWorkUnPaidScreen");
-                }
-            }
-        }
-        private bool NavigateNextPending
-        {
-            get { return Session["CE_NavigateNextPending"] != null && (bool)Session["CE_NavigateNextPending"]; }
-            set
-            {
-                if (value)
-                {
-                    Session["CE_NavigateNextPending"] = true;
-                }
-                else
-                {
-                    Session.Remove("CE_NavigateNextPending");
                 }
             }
         }
