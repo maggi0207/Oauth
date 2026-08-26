@@ -75,6 +75,7 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         /// <param name="e"></param>View
         protected void Page_Load(object sender, EventArgs e)
         {
+            SyncCurrentRecordWithWorkflowAnchor();
             Master.Master.FooterSectionConfigure(FooterBodyConfiguration.AddnoteSavePreviousNext);
             if (!IsPostBack)
             {
@@ -113,6 +114,23 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         private void RefreshAnchorObject(object sender, EventArgs e)
         {
 
+        }
+
+        /// <summary>
+        /// base.NavigateNext() moves the workflow cursor to the next person in context and reloads
+        /// this page, but every FormView here selects on CommunityEngagementSummaryID from session.
+        /// Without realigning the two, the same record is rendered again and Next looks like a
+        /// plain refresh.
+        /// </summary>
+        private void SyncCurrentRecordWithWorkflowAnchor()
+        {
+            if (this.AnchorObject.IsNull()) return;
+
+            int anchorSummaryId = Convert.ToInt32(this.AnchorObject.CommunityEngagementSummaryID);
+            if (anchorSummaryId != 0 && anchorSummaryId != TechnicalSessionContext.Instance.CommunityEngagementSummaryID)
+            {
+                TechnicalSessionContext.Instance.CommunityEngagementSummaryID = anchorSummaryId;
+            }
         }
 
         /// <summary>
