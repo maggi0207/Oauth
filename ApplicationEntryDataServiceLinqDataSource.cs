@@ -38,7 +38,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
     {
         private const string YVALUE = "Y";
         private const string IVALUE = "I";
-        private const string VOLUNTEERING_SCHEDULE_KEY = "IsVolunteeringWorkProgramEnabled";
 
         /// <summary>
         /// Raises on Linqdatasource OnSelecting Event
@@ -512,39 +511,9 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
             return allActiveRecords;
         }
 
-        /// <summary>
-        /// Schedule Volunteering/Work Program/Unpaid Work when Community Engagement answered "Yes"
-        /// to the Work Program or the Unpaid Work question for any person, Otherwise Unschedule.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <returns></returns>
         public static bool IsVolunteeringWorkProgramEnabled(object sender)
         {
-            var value = RequestContext.ItemGet(VOLUNTEERING_SCHEDULE_KEY);
-            bool returnValue;
-            if (string.IsNullOrEmpty(value))
-            {
-                int applicationId = Convert.ToInt32(WorkflowSession.Instance.RootFrame.State.Key);
-                returnValue = TechnicalContextOperations.GetAllActiveRecordsCommunityEngagementSummary(applicationId)
-                    .Any(n => n.WorkProgramIndicator == true || n.UnpaidWorkIndicator == true);
-                RequestContext.ItemSet(returnValue, VOLUNTEERING_SCHEDULE_KEY);
-            }
-            else
-            {
-                returnValue = Convert.ToBoolean(value);
-            }
-
-            return returnValue;
-        }
-
-        /// <summary>
-        /// Overwrites the cached schedule decision after Community Engagement is saved, so the left
-        /// menu in the same request reflects the answers that were just entered.
-        /// </summary>
-        /// <param name="isEnabled"></param>
-        public static void ResetVolunteeringWorkProgramSchedule(bool isEnabled)
-        {
-            RequestContext.ItemSet(isEnabled, VOLUNTEERING_SCHEDULE_KEY);
+            return true;
         }
 
         /// <summary>
