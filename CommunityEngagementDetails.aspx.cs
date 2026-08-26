@@ -1043,52 +1043,30 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
 
         }
         /// <summary>
-        /// Same pattern as Tax Deductions: Yes on Work Program / Unpaid Work
+        /// Same pattern as Tax Deductions / Technical Questions: Yes on Work Program / Unpaid Work
         /// schedules the Volunteering child page as incomplete.
+        /// Visible is Field&lt;bool&gt;, so assign true directly (do not set a raw bool via reflection).
         /// </summary>
         private void ScheduleVolunteeringWorkProgramPage()
         {
             string pageName = IntakeConstants.VOLUNTEERING_WORK_PROGRAM_UNPAID_WORK_SUMMARY_AE;
-            SetWorkflowPageVisible(pageName, true);
-            SetPageComplete(pageName, false);
-        }
-
-        private void SetWorkflowPageVisible(string pageName, bool visible)
-        {
-            if (TrySetWorkflowPageVisible(WorkflowSession.Instance.CurrentFrame.Workflow.Children, pageName, visible))
+            foreach (var page in WorkflowSession.Instance.CurrentFrame.Workflow.Children)
             {
-                return;
-            }
-            TrySetWorkflowPageVisible(WorkflowSession.Instance.RootFrame.Workflow.Children, pageName, visible);
-        }
-
-        private static bool TrySetWorkflowPageVisible(System.Collections.IEnumerable children, string pageName, bool visible)
-        {
-            if (children == null)
-            {
-                return false;
-            }
-            foreach (var child in children)
-            {
-                var nameProperty = child.GetType().GetProperty("Name");
-                var visibleProperty = child.GetType().GetProperty("Visible");
-                var childName = nameProperty == null ? null : nameProperty.GetValue(child, null) as string;
-                if (string.Equals(childName, pageName, StringComparison.Ordinal))
+                if (page.Name == pageName)
                 {
-                    if (visibleProperty != null)
+                    page.Visible = true;
+                    break;
+                }
+                foreach (var nested in page.Children)
+                {
+                    if (nested.Name == pageName)
                     {
-                        visibleProperty.SetValue(child, visible, null);
+                        nested.Visible = true;
+                        break;
                     }
-                    return true;
-                }
-                var childrenProperty = child.GetType().GetProperty("Children");
-                var nested = childrenProperty == null ? null : childrenProperty.GetValue(child, null) as System.Collections.IEnumerable;
-                if (TrySetWorkflowPageVisible(nested, pageName, visible))
-                {
-                    return true;
                 }
             }
-            return false;
+            SetPageComplete(pageName, false);
         }
 
         private bool _pageValidationFailed;
