@@ -718,7 +718,8 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
 
             var cbWorkProgram = fvTechnical_CommunityEngagement.FindControl("cbParticipatingInWorkProgram") as ASPxComboBox;
             var cbUnpaidWork = fvTechnical_CommunityEngagement.FindControl("cbParticipatingInUnpaidWork") as ASPxComboBox;
-            if (IsYes(cbWorkProgram) || IsYes(cbUnpaidWork))
+            ScheduleVolWorkUnPaidScreen = IsYes(cbWorkProgram) || IsYes(cbUnpaidWork);
+            if (ScheduleVolWorkUnPaidScreen)
             {
                 ScheduleVolunteeringWorkProgramPage();
             }
@@ -733,7 +734,10 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         /// </summary>
         private void SetSummaryPageComplete()
         {
-            if (CurrentWorkflowPage.Context.Value.IsContextComplete())
+            if (CurrentWorkflowPage != null
+                && CurrentWorkflowPage.Context != null
+                && CurrentWorkflowPage.Context.Value != null
+                && CurrentWorkflowPage.Context.Value.IsContextComplete())
             {
                 SetPreviousPageComplete(true);
             }
@@ -1025,11 +1029,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                 if (caseRemarkId != 0)
                 {
                     CaseloadManagementSessionContext.Instance.CaseRemarkList = null;
-                    if (NavigateNextPending)
-                    {
-                        NavigateNextPending = false;
-                        ResumeNavigation();
-                    }
                 }
                 else
                 {
@@ -1041,6 +1040,12 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                 Debug.WriteLine("HW> SaveCaseRemark failed: " + ex.Message);
             }
 
+            // Resume even when the case remark could not be saved, so Next is never stuck.
+            if (NavigateNextPending)
+            {
+                NavigateNextPending = false;
+                ResumeNavigation();
+            }
         }
         /// <summary>
         /// Same pattern as Tax Deductions / Technical Questions: Yes on Work Program / Unpaid Work
@@ -1079,7 +1084,8 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         {
             if (_pageValidationFailed) return;
 
-            if (_showHardshipWaiverPopup)
+            // Only wait when the hardship waiver popup is really on screen; otherwise Next would stall.
+            if (_showHardshipWaiverPopup && popupHardshipWaiverPendingApproval.ShowOnPageLoad)
             {
                 NavigateNextPending = true;
                 return;
@@ -1088,6 +1094,13 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         }
         private void ResumeNavigation()
         {
+            if (ScheduleVolWorkUnPaidScreen)
+            {
+                ScheduleVolWorkUnPaidScreen = false;
+                TechnicalSessionContext.Instance.IsVolunteeringWorkProgramBackToSummary = false;
+                NavigateTo(n => n.Name == IntakeConstants.VOLUNTEERING_WORK_PROGRAM_UNPAID_WORK_SUMMARY_AE);
+                return;
+            }
             base.NavigateNext();
         }
         private bool NavigateNextPending
@@ -1102,6 +1115,21 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                 else
                 {
                     Session.Remove("CE_NavigateNextPending");
+                }
+            }
+        }
+        private bool ScheduleVolWorkUnPaidScreen
+        {
+            get { return Session["CE_ScheduleVolWorkUnPaidScreen"] != null && (bool)Session["CE_ScheduleVolWorkUnPaidScreen"]; }
+            set
+            {
+                if (value)
+                {
+                    Session["CE_ScheduleVolWorkUnPaidScreen"] = true;
+                }
+                else
+                {
+                    Session.Remove("CE_ScheduleVolWorkUnPaidScreen");
                 }
             }
         }
