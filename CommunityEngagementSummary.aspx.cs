@@ -48,32 +48,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         public override void SaveData()
         {
         }
-
-        /// <summary>
-        /// Same navigation as Tax Dependency Summary: open incomplete details first,
-        /// then mark Community Engagement complete and continue to the next workflow page
-        /// (Volunteering when it is scheduled).
-        /// </summary>
-        public override void NavigateNext()
-        {
-            if (!CurrentWorkflowPage.Completed && gvASPxGridView.VisibleRowCount > 0)
-            {
-                SetPageComplete(false);
-                if (gvASPxGridView.FocusedRowIndex < 0)
-                {
-                    gvASPxGridView.FocusedRowIndex = 0;
-                }
-                NavigateToNextPage();
-                return;
-            }
-
-            if (!CurrentWorkflowPage.Completed && !IntakeContext.Instance.IsRenewal)
-            {
-                base.NavigateNext();
-            }
-            SetPageComplete();
-            base.NavigateNext();
-        }
         /// <summary>
         /// BtnRetrieve_Click
         /// </summary>
