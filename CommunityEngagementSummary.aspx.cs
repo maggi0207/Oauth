@@ -49,47 +49,30 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         {
         }
 
+        /// <summary>
+        /// Same navigation as Tax Dependency Summary: open incomplete details first,
+        /// then mark Community Engagement complete and continue to the next workflow page
+        /// (Volunteering when it is scheduled).
+        /// </summary>
         public override void NavigateNext()
         {
-            SetPageComplete();
-            if (ShouldNavigateToVolunteering())
+            if (!CurrentWorkflowPage.Completed && gvASPxGridView.VisibleRowCount > 0)
             {
-                TechnicalSessionContext.Instance.IsVolunteeringWorkProgramBackToSummary = false;
-                NavigateTo(n => n.Name == IntakeConstants.VOLUNTEERING_WORK_PROGRAM_UNPAID_WORK_SUMMARY_AE);
+                SetPageComplete(false);
+                if (gvASPxGridView.FocusedRowIndex < 0)
+                {
+                    gvASPxGridView.FocusedRowIndex = 0;
+                }
+                NavigateToNextPage();
                 return;
             }
+
+            if (!CurrentWorkflowPage.Completed && !IntakeContext.Instance.IsRenewal)
+            {
+                base.NavigateNext();
+            }
+            SetPageComplete();
             base.NavigateNext();
-        }
-
-        private bool ShouldNavigateToVolunteering()
-        {
-            if (Session["CE_ScheduleVolWorkUnPaidScreen"] != null && (bool)Session["CE_ScheduleVolWorkUnPaidScreen"])
-            {
-                return true;
-            }
-            for (int i = 0; i < gvASPxGridView.VisibleRowCount; i++)
-            {
-                if (ToBool(gvASPxGridView.GetRowValues(i, "WorkProgramIndicator"))
-                    || ToBool(gvASPxGridView.GetRowValues(i, "UnpaidWorkIndicator")))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private static bool ToBool(object value)
-        {
-            if (value == null || value == DBNull.Value)
-            {
-                return false;
-            }
-            if (value is bool)
-            {
-                return (bool)value;
-            }
-            bool parsed;
-            return bool.TryParse(value.ToString(), out parsed) && parsed;
         }
         /// <summary>
         /// BtnRetrieve_Click

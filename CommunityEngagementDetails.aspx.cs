@@ -177,6 +177,7 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
 
             if (_isChangeMade)
             {
+                TechnicalSessionContext.Instance.IsPreviousAction = false;
                 ShowPopupInfo(IntakeResourceManager.SAVE_CHAGNES_ALERT);
             }
             else
@@ -190,7 +191,7 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         /// </summary>
         private void NavigateToSummary()
         {
-            Response.Redirect("~/Intake/ApplicationEntry/Technical/CommunityEngagementSummary.aspx");
+            NavigatePrevious(n => n.Name == IntakeConstants.COMMUNITYENGAGEMENT_SUMMARY_AE);
         }
 
         /// <summary>
@@ -241,7 +242,15 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         protected void BtnPopUpYes_Click(object sender, EventArgs e)
         {
             dxPopupInfo.ShowOnPageLoad = false;
-            NavigateToSummary();
+            if (TechnicalSessionContext.Instance.IsPreviousAction)
+            {
+                TechnicalSessionContext.Instance.IsPreviousAction = false;
+                base.NavigatePrevious(n => n.Visible && n.Completed && !n.DetailScreen && n.Name != IntakeConstants.COMMUNITYENGAGEMENT_SUMMARY_AE);
+            }
+            else
+            {
+                NavigateToSummary();
+            }
         }
         /// <summary>
         /// btnCaseComment_Click
@@ -545,30 +554,150 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
             }
         }
 
+        private static bool ComboTextContains(ASPxComboBox cb, string keyword)
+        {
+            return cb != null && !string.IsNullOrEmpty(cb.Text)
+                && cb.Text.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private void RequireEndOnOrAfterBegin(ASPxDateEdit begin, ASPxDateEdit end, string label)
+        {
+            if (begin == null || end == null) return;
+            if (begin.Date == DateTime.MinValue || end.Date == DateTime.MinValue) return;
+            if (end.Date.Date < begin.Date.Date)
+            {
+                _validationErrors.Add(label);
+            }
+        }
+
+        private bool ValidatePage()
+        {
+            _validationErrors.Clear();
+            var fv = fvTechnical_CommunityEngagement;
+            var fvMD = fvTechnical_CommunityEngagementMedicalDetails;
+            var fvHW = fvTechnical_CommunityEngagementHardshipWaiver;
+
+            var ddeBeginDate = fv.FindControl("ddeCEBeginDate") as ASPxDateEdit;
+            RequiredCombo(ddeBeginDate, "Begin Date");
+            if (ddeBeginDate != null && ddeBeginDate.Date != DateTime.MinValue)
+            {
+                if (ddeBeginDate.Date.Year <= 1989)
+                {
+                    _validationErrors.Add("Begin Date year cannot be 1989 or earlier");
+                }
+                var maxMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(2);
+                var enteredMonth = new DateTime(ddeBeginDate.Date.Year, ddeBeginDate.Date.Month, 1);
+                if (enteredMonth > maxMonth)
+                {
+                    _validationErrors.Add("Begin Date cannot be greater than 2 months from the current date");
+                }
+            }
+
+            var cbCare = fv.FindControl("cbRegularlyTakeCareOfDependent") as ASPxComboBox;
+            RequiredCombo(cbCare, "Regularly take care of a dependent");
+            if (IsYes(cbCare))
+            {
+                RequiredCombo(fv.FindControl("cbWho") as ASPxComboBox, "Who");
+                var cbParent = fv.FindControl("cbParentOrLegalGuardian") as ASPxComboBox;
+                RequiredCombo(cbParent, "Parent or legal guardian");
+                if (IsYes(cbParent))
+                {
+                    var cbWhenLg = fv.FindControl("cbWhenLegalGuardianProvideCare") as ASPxComboBox;
+                    RequiredCombo(cbWhenLg, "When did you provide care");
+                    RequiredCombo(fv.FindControl("dateStopLegalGuardianProvideCare") as ASPxDateEdit, "When did you stop providing care", ComboTextContains(cbWhenLg, "no longer"));
+                }
+                else if (cbParent != null && cbParent.Value != null)
+                {
+                    var cbRel = fv.FindControl("cbCareTakerRelationship") as ASPxComboBox;
+                    RequiredCombo(cbRel, "Relationship to the person you care for");
+                    bool otherOrNotRelated = ComboTextContains(cbRel, "other relation") || ComboTextContains(cbRel, "not related");
+                    if (cbRel != null && cbRel.Value != null && !otherOrNotRelated)
+                    {
+                        var cbWhenRel = fv.FindControl("cbWhenCareTakerRelationship") as ASPxComboBox;
+                        RequiredCombo(cbWhenRel, "When did you provide care");
+                        RequiredCombo(fv.FindControl("dateStopProvidingCareDateTime") as ASPxDateEdit, "When did you stop providing care", ComboTextContains(cbWhenRel, "no longer"));
+                    }
+                    if (otherOrNotRelated)
+                    {
+                        var cbLive = fv.FindControl("cbLiveWithPersonBeingCaredFor") as ASPxComboBox;
+                        RequiredCombo(cbLive, "Live with the person while giving care");
+                    }
+                }
+            }
+
+            var cbCorrectional = fv.FindControl("cbCorrectionalInLast12Months") as ASPxComboBox;
+            RequiredCombo(cbCorrectional, "Correctional facility in the last 12 months");
+            if (IsYes(cbCorrectional))
+            {
+                RequiredCombo(fv.FindControl("cbCorrectionalInLast12MonthsVerifiedBy") as ASPxComboBox, "Correctional Verified By");
+                var released = fv.FindControl("dateCorrectionalReleasedDate") as ASPxDateEdit;
+                RequiredCombo(released, "When were you released");
+                if (released != null && released.Date != DateTime.MinValue)
+                {
+                    var twelveMonthsAgo = DateTime.Today.AddMonths(-12);
+                    if (released.Date.Date < twelveMonthsAgo || released.Date.Date > DateTime.Today)
+                    {
+                        _validationErrors.Add("Release date must be within the past 12 months");
+                    }
+                }
+            }
+
+            RequiredCombo(fv.FindControl("cbParticipatingInWorkProgram") as ASPxComboBox, "Participating in a Work Program");
+            RequiredCombo(fv.FindControl("cbParticipatingInUnpaidWork") as ASPxComboBox, "Volunteering or Participating in Unpaid Work");
+
+            ValidateMedicalYesBranch(fvMD, "cbSeriousMedicalCondition", "cbSeriousMedicalConditionVerifiedBy", "cbSeriousMedicalconditionStatus", "dateEndSeriousConditionDate", "Serious medical condition");
+            ValidateMedicalYesBranch(fvMD, "cbSubstanceUseDisorder", "cbSubstanceUseDisorderVerifiedBy", "cbSubstanceUseDisorderStatus", "dateEndSubstanceDisorderDate", "Substance use disorder");
+            ValidateMedicalYesBranch(fvMD, "cbDisabledBySSA", "cbDisabledBySSAVerifiedBy", "cbWhenDetermined", "dateEndSSADeterminationDate", "Disabled by SSA");
+            ValidateMedicalYesBranch(fvMD, "cbDisablingMentalDisorder", "cbDisablingMentalDisorderVerifiedBy", "cbWhenDisablingMentalDisorder", "dateEndDisablingMentalDisorderDate", "Disabling mental disorder");
+            ValidateMedicalYesBranch(fvMD, "cbPhysicalDisability", "cbPhysicalDisabilityVerifiedBy", "cbWhenPhysicalDisability", "dateEndPhysicalDisabilityDate", "Physical/Intellectual/developmental disability");
+
+            var cbHospitalized = fvHW.FindControl("cbHospitalizedSeriousCondition") as ASPxComboBox;
+            RequiredCombo(cbHospitalized, "Hospitalized for a serious condition");
+            if (IsYes(cbHospitalized))
+            {
+                RequiredCombo(fvHW.FindControl("cbHospitalizedSeriousConditionVerifiedBy") as ASPxComboBox, "Hospitalized Verified By");
+                var hospBegin = fvHW.FindControl("ddeHospitalizedBeginDate") as ASPxDateEdit;
+                var hospEnd = fvHW.FindControl("ddeHospitalizedEndDate") as ASPxDateEdit;
+                RequiredCombo(hospBegin, "Hospitalized Begin Date");
+                RequiredCombo(hospEnd, "Hospitalized End Date");
+                RequireEndOnOrAfterBegin(hospBegin, hospEnd, "Hospitalized end date must be on or after begin date");
+            }
+
+            var cbTravel = fvHW.FindControl("cbTravelOutOfAreaMedical") as ASPxComboBox;
+            RequiredCombo(cbTravel, "Traveled out of the area for medical care");
+            if (IsYes(cbTravel))
+            {
+                RequiredCombo(fvHW.FindControl("cbTravelOutOfAreaMedicalVerifiedBy") as ASPxComboBox, "Travel Verified By");
+                var travelBegin = fvHW.FindControl("ddeTravelOutOfAreaMedicalBeginDate") as ASPxDateEdit;
+                var travelEnd = fvHW.FindControl("ddeTravelOutOfAreaMedicalEndDate") as ASPxDateEdit;
+                RequiredCombo(travelBegin, "Travel Begin Date");
+                RequiredCombo(travelEnd, "Travel End Date");
+                RequireEndOnOrAfterBegin(travelBegin, travelEnd, "Travel end date must be on or after begin date");
+            }
+
+            RequireEndOnOrAfterBegin(fvHW.FindControl("ddeDisasterDeclarationBeginDate") as ASPxDateEdit, fvHW.FindControl("ddeDisasterDeclarationEndDate") as ASPxDateEdit, "Disaster end date must be on or after begin date");
+            RequireEndOnOrAfterBegin(fvHW.FindControl("ddeUnemploymentLevelBeginDate") as ASPxDateEdit, fvHW.FindControl("ddeUnemploymentLevelEndDate") as ASPxDateEdit, "Unemployment end date must be on or after begin date");
+
+            return _validationErrors.Count == 0;
+        }
+
+        private void ValidateMedicalYesBranch(Control fvMD, string yesComboId, string verifiedById, string whenId, string endDateId, string label)
+        {
+            var cb = fvMD.FindControl(yesComboId) as ASPxComboBox;
+            RequiredCombo(cb, label);
+            if (!IsYes(cb)) return;
+            RequiredCombo(fvMD.FindControl(verifiedById) as ASPxComboBox, label + " Verified By");
+            var cbWhen = fvMD.FindControl(whenId) as ASPxComboBox;
+            RequiredCombo(cbWhen, "When did you have this condition (" + label + ")");
+            RequiredCombo(fvMD.FindControl(endDateId) as ASPxDateEdit, "End date (" + label + ")", ComboTextContains(cbWhen, "no longer"));
+        }
 
         /// <summary>
         /// SaveData
         /// </summary>
         public override void SaveData()
         {
-            _validationErrors.Clear();
-            var fv = fvTechnical_CommunityEngagement;
-            var fvMD = fvTechnical_CommunityEngagementMedicalDetails;
-            var fvHW = fvTechnical_CommunityEngagementHardshipWaiver;
-            var cbWorkProgram = fv.FindControl("cbParticipatingInWorkProgram") as ASPxComboBox;
-            var cbUnpaidWork = fv.FindControl("cbParticipatingInUnpaidWork") as ASPxComboBox;
-
-            RequiredCombo(cbWorkProgram, "Participating in a Work Program");
-            RequiredCombo(cbUnpaidWork, "Volunteering or Participating in Unpaid Work");
-
-            var cbPhysicalDisability = fvMD.FindControl("cbPhysicalDisability") as ASPxComboBox;
-            RequiredCombo(cbPhysicalDisability, "Physical/Intellectual/developmental disability");
-            if (cbPhysicalDisability != null && IsYes(cbPhysicalDisability))
-            {
-                RequiredCombo(fvMD.FindControl("cbPhysicalDisabilityVerifiedBy") as ASPxComboBox, "Physical Disability Verified By");
-                RequiredCombo(fvMD.FindControl("cbWhenPhysicalDisability") as ASPxComboBox, "When did you have this condition");
-            }
-            if (_validationErrors.Count > 0)
+            if (!ValidatePage())
             {
                 _pageValidationFailed = true;
                 ShowPopupInfo(IntakeResourceManager.MANDATORY_FIELDS_MESSAGE);
@@ -587,10 +716,27 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
             fvTechnical_CommunityEngagementMedicalDetails.DataBind();
             fvTechnical_CommunityEngagementHardshipWaiver.DataBind();
 
-            bool scheduleVolunteering = IsYes(cbWorkProgram) || IsYes(cbUnpaidWork);
-            ScheduleVolunteeringWorkProgramPage(scheduleVolunteering);
+            var cbWorkProgram = fvTechnical_CommunityEngagement.FindControl("cbParticipatingInWorkProgram") as ASPxComboBox;
+            var cbUnpaidWork = fvTechnical_CommunityEngagement.FindControl("cbParticipatingInUnpaidWork") as ASPxComboBox;
+            if (IsYes(cbWorkProgram) || IsYes(cbUnpaidWork))
+            {
+                ScheduleVolunteeringWorkProgramPage();
+            }
+
             SetPageComplete();
-            SetPageComplete(IntakeConstants.COMMUNITYENGAGEMENT_SUMMARY_AE, true);
+            SetSummaryPageComplete();
+        }
+
+        /// <summary>
+        /// Completes the Community Engagement summary when every person in context is done,
+        /// same pattern as Tax Dependency SetSummaryPageComplete.
+        /// </summary>
+        private void SetSummaryPageComplete()
+        {
+            if (CurrentWorkflowPage.Context.Value.IsContextComplete())
+            {
+                SetPreviousPageComplete(true);
+            }
         }
 
         /// <summary>
@@ -897,18 +1043,14 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
 
         }
         /// <summary>
-        /// Same pattern as Technical Questions: Yes on Work Program / Unpaid Work
-        /// schedules Volunteering in the left menu so Next can move forward.
+        /// Same pattern as Tax Deductions: Yes on Work Program / Unpaid Work
+        /// schedules the Volunteering child page as incomplete.
         /// </summary>
-        private void ScheduleVolunteeringWorkProgramPage(bool schedule)
+        private void ScheduleVolunteeringWorkProgramPage()
         {
-            ScheduleVolWorkUnPaidScreen = schedule;
             string pageName = IntakeConstants.VOLUNTEERING_WORK_PROGRAM_UNPAID_WORK_SUMMARY_AE;
-            SetWorkflowPageVisible(pageName, schedule);
-            if (schedule)
-            {
-                SetPageComplete(pageName, false);
-            }
+            SetWorkflowPageVisible(pageName, true);
+            SetPageComplete(pageName, false);
         }
 
         private void SetWorkflowPageVisible(string pageName, bool visible)
@@ -949,18 +1091,11 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
             return false;
         }
 
-        /// <summary>
-        /// NavigateToNextPageOfVolunteeringWorkProgramUnpaidWorkSummary
-        /// </summary>
-        protected void NavigateToNextPageOfVolunteeringWorkProgramUnpaidWorkSummary()
-        {
-            TechnicalSessionContext.Instance.IsVolunteeringWorkProgramBackToSummary = false;
-            NavigateTo(n => n.Name == IntakeConstants.VOLUNTEERING_WORK_PROGRAM_UNPAID_WORK_SUMMARY_AE);
-        }
         private bool _pageValidationFailed;
 
         /// <summary>
-        /// NavigateNext
+        /// Navigates to next active record if it exists in context else the summary page,
+        /// same as Tax Dependency Details.
         /// </summary>
         public override void NavigateNext()
         {
@@ -975,12 +1110,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         }
         private void ResumeNavigation()
         {
-            if (ScheduleVolWorkUnPaidScreen)
-            {
-                ScheduleVolWorkUnPaidScreen = false;
-                NavigateToNextPageOfVolunteeringWorkProgramUnpaidWorkSummary();
-                return;
-            }
             base.NavigateNext();
         }
         private bool NavigateNextPending
@@ -995,21 +1124,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                 else
                 {
                     Session.Remove("CE_NavigateNextPending");
-                }
-            }
-        }
-        private bool ScheduleVolWorkUnPaidScreen
-        {
-            get { return Session["CE_ScheduleVolWorkUnPaidScreen"] != null && (bool)Session["CE_ScheduleVolWorkUnPaidScreen"]; }
-            set
-            {
-                if (value)
-                {
-                    Session["CE_ScheduleVolWorkUnPaidScreen"] = true;
-                }
-                else
-                {
-                    Session.Remove("CE_ScheduleVolWorkUnPaidScreen");
                 }
             }
         }
@@ -1041,11 +1155,12 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
 
             if (_isChangeMade)
             {
+                TechnicalSessionContext.Instance.IsPreviousAction = true;
                 ShowPopupInfo(IntakeResourceManager.SAVE_CHAGNES_ALERT);
             }
             else
             {
-                NavigateToSummary();
+                base.NavigatePrevious(n => n.Name != IntakeConstants.COMMUNITYENGAGEMENT_SUMMARY_AE && !n.DetailScreen && n.Completed && n.Visible);
             }
         }
 
