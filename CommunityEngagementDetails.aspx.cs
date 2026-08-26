@@ -718,11 +718,8 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
 
             var cbWorkProgram = fvTechnical_CommunityEngagement.FindControl("cbParticipatingInWorkProgram") as ASPxComboBox;
             var cbUnpaidWork = fvTechnical_CommunityEngagement.FindControl("cbParticipatingInUnpaidWork") as ASPxComboBox;
-            ScheduleVolWorkUnPaidScreen = IsYes(cbWorkProgram) || IsYes(cbUnpaidWork);
-            if (ScheduleVolWorkUnPaidScreen)
-            {
-                ScheduleVolunteeringWorkProgramPage();
-            }
+            IsVolunteeringScheduled = IsYes(cbWorkProgram) || IsYes(cbUnpaidWork);
+            ScheduleVolunteeringWorkProgramPage(IsVolunteeringScheduled);
 
             SetPageComplete();
             SetSummaryPageComplete();
@@ -1010,7 +1007,13 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         /// </summary>
         protected void PopupHardshipWaiverPendingApproval_WindowCallback(object source, DevExpress.Web.ASPxPopupControl.PopupWindowCallbackArgs e)
         {
-            if (e.Parameter != "save") return;
+            if (e.Parameter != "save")
+            {
+                // Dismissing the popup must disarm Next, otherwise the flag survives in session
+                // and the following Next click is swallowed waiting for a popup that never shows.
+                NavigateNextPending = false;
+                return;
+            }
 
             var caseRemarkDetails = new CaseRemarkDetails
             {
@@ -1044,34 +1047,38 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
             if (NavigateNextPending)
             {
                 NavigateNextPending = false;
-                ResumeNavigation();
+                // Response.Redirect and base.NavigateNext() write to a response that the callback
+                // never sends, so the browser stays put. RedirectOnCallback is the only way out.
+                DevExpress.Web.ASPxClasses.ASPxWebControl.RedirectOnCallback(ResolveNextPageUrl());
             }
         }
+
         /// <summary>
-        /// Same pattern as Tax Deductions / Technical Questions: Yes on Work Program / Unpaid Work
-        /// schedules the Volunteering child page as incomplete.
-        /// Visible is Field&lt;bool&gt;, so assign true directly (do not set a raw bool via reflection).
+        /// Resolves the page Next should land on, matching the order the pages are declared in the
+        /// Intake workflow.
         /// </summary>
-        private void ScheduleVolunteeringWorkProgramPage()
+        private string ResolveNextPageUrl()
         {
-            string pageName = IntakeConstants.VOLUNTEERING_WORK_PROGRAM_UNPAID_WORK_SUMMARY_AE;
-            foreach (var page in WorkflowSession.Instance.CurrentFrame.Workflow.Children)
+            if (IsVolunteeringScheduled)
             {
-                if (page.Name == pageName)
-                {
-                    page.Visible = true;
-                    break;
-                }
-                foreach (var nested in page.Children)
-                {
-                    if (nested.Name == pageName)
-                    {
-                        nested.Visible = true;
-                        break;
-                    }
-                }
+                IsVolunteeringScheduled = false;
+                TechnicalSessionContext.Instance.IsVolunteeringWorkProgramBackToSummary = false;
+                return ResolveUrl("~/Intake/ApplicationEntry/Technical/VolunteeringWorkProgramUnpaidWorkSummary.aspx");
             }
-            SetPageComplete(pageName, false);
+            return ResolveUrl("~/Intake/ApplicationEntry/Technical/CommunityEngagementSummary.aspx");
+        }
+        /// <summary>
+        /// Same as Tax Dependency scheduling Tax Deductions. Visibility itself is decided by
+        /// IsVolunteeringWorkProgramEnabled in the workflow, which reads the answers saved above,
+        /// so only the per-request cache has to be refreshed here.
+        /// </summary>
+        private void ScheduleVolunteeringWorkProgramPage(bool isScheduled)
+        {
+            ApplicationEntryDataServiceLinqDataSource.ResetVolunteeringWorkProgramSchedule(isScheduled);
+            if (isScheduled)
+            {
+                SetPageComplete(IntakeConstants.VOLUNTEERING_WORK_PROGRAM_UNPAID_WORK_SUMMARY_AE, false);
+            }
         }
 
         private bool _pageValidationFailed;
@@ -1094,14 +1101,29 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         }
         private void ResumeNavigation()
         {
-            if (ScheduleVolWorkUnPaidScreen)
-            {
-                ScheduleVolWorkUnPaidScreen = false;
-                TechnicalSessionContext.Instance.IsVolunteeringWorkProgramBackToSummary = false;
-                NavigateTo(n => n.Name == IntakeConstants.VOLUNTEERING_WORK_PROGRAM_UNPAID_WORK_SUMMARY_AE);
-                return;
-            }
             base.NavigateNext();
+
+            // base.NavigateNext() silently does nothing when the workflow cannot resolve the
+            // next page from this frame, which leaves the worker stranded on Details.
+            if (Response.IsRequestBeingRedirected) return;
+
+            Response.Redirect(ResolveNextPageUrl());
+        }
+
+        private bool IsVolunteeringScheduled
+        {
+            get { return Session["CE_ScheduleVolWorkUnPaidScreen"] != null && (bool)Session["CE_ScheduleVolWorkUnPaidScreen"]; }
+            set
+            {
+                if (value)
+                {
+                    Session["CE_ScheduleVolWorkUnPaidScreen"] = true;
+                }
+                else
+                {
+                    Session.Remove("CE_ScheduleVolWorkUnPaidScreen");
+                }
+            }
         }
         private bool NavigateNextPending
         {
@@ -1115,21 +1137,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                 else
                 {
                     Session.Remove("CE_NavigateNextPending");
-                }
-            }
-        }
-        private bool ScheduleVolWorkUnPaidScreen
-        {
-            get { return Session["CE_ScheduleVolWorkUnPaidScreen"] != null && (bool)Session["CE_ScheduleVolWorkUnPaidScreen"]; }
-            set
-            {
-                if (value)
-                {
-                    Session["CE_ScheduleVolWorkUnPaidScreen"] = true;
-                }
-                else
-                {
-                    Session.Remove("CE_ScheduleVolWorkUnPaidScreen");
                 }
             }
         }
