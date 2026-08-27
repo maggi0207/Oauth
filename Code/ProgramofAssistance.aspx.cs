@@ -26,6 +26,7 @@ using Dhss.Assist.WorkerWeb.Entity.SharedErrorMessages;
 using Dhss.Assist.WorkerWeb.Web.ImageIntegration;
 using Dhss.Assist.WorkerWeb.Web.Infrastructure.Context;
 using Dhss.Assist.WorkerWeb.Web.Infrastructure.Controls;
+using Dhss.Assist.WorkerWeb.Web.Infrastructure.Extensions;
 using Dhss.Assist.WorkerWeb.Web.Infrastructure.Services;
 using Dhss.Assist.WorkerWeb.Web.Services.Application.WorkerDashboard;
 using Dhss.Framework;
@@ -58,6 +59,9 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         private const string RENEWAL_APPLICATION_TYPE = "R";
         private const string WORK_ITEM_OPEN_STATUS = "O";
         private const int DEFAULT_POOL_NUMBER = -1;
+        private const string SWTSPI_RETRO_MA_INIT_CODE = "R2";
+        private const string RETRO_MA_MAX_MONTHS_ERROR = "The maximum number of months that can be requested to Retro MA field is 2.";
+        private const string RETRO_MSP_MAX_MONTHS_ERROR = "The maximum number of months that can be requested to Retro MSP field is 2.";
         private int _applicationId;
         private bool _isChangeMade; // Tracks if any edit or change made is on the formview 
         private bool _isbackToSummaryOrPrevious; // Back-to-summary or Previous button clicked flag
@@ -848,6 +852,54 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
             ASPxDateEdit verificationdate = fvTechnical_ProgramDetail.FindControl("dtCashLastVerificationDate") as ASPxDateEdit;
             ASPxDateEdit filingDate = fvTechnical_ProgramDetail.FindControl("dtCashFilingDate") as ASPxDateEdit;
             return TechnicalBusinessLogic.IsVerificationDatevalid(filingDate.Value, verificationdate.Value);
+        }
+
+        /// <summary>
+        /// Blocks Retro MA / Retro MSP value 3 when program Filing Date is on or after SWTSPI PROG-BGN-DT for INIT-CD R2.
+        /// Option 3 remains in the AERTMA dropdown for Filing Dates before that configuration date.
+        /// </summary>
+        private void ValidateRetroMAMonths()
+        {
+            ASPxDateEdit filingDateEdit = fvTechnical_ProgramDetail.FindControl("dtCashFilingDate") as ASPxDateEdit;
+            if (filingDateEdit == null || filingDateEdit.Value == null)
+                return;
+
+            string bgnDateValue = ReferenceTableHelper.GetReferenceTableValue("SWTSPI", "INIT-CD", "PROG-BGN-DT", SWTSPI_RETRO_MA_INIT_CODE);
+            DateTime configurationStartDate;
+            if (string.IsNullOrWhiteSpace(bgnDateValue) || !DateTime.TryParse(bgnDateValue, out configurationStartDate))
+                return;
+
+            if (filingDateEdit.Date.Date < configurationStartDate.Date)
+                return;
+
+            if (_programCode == "DC" && fvTechnical_DisabledChildren.Visible
+                && IsRetroMAValueThree(fvTechnical_DisabledChildren.FindControl("cbDisabledRetroMA") as ASPxComboBox))
+            {
+                _validate = false;
+                ShowErrPopupAlert(RETRO_MA_MAX_MONTHS_ERROR);
+                return;
+            }
+
+            if (_programCode == "MA" && fvTechnical_MedicalAssistance.Visible
+                && IsRetroMAValueThree(fvTechnical_MedicalAssistance.FindControl("cbMedicalRetroMA") as ASPxComboBox))
+            {
+                _validate = false;
+                ShowErrPopupAlert(RETRO_MA_MAX_MONTHS_ERROR);
+                return;
+            }
+
+            if (_programCode == "QM" && fvTechnical_QMB.Visible
+                && IsRetroMAValueThree(fvTechnical_QMB.FindControl("cbQMBProgramRetroMA") as ASPxComboBox))
+            {
+                _validate = false;
+                ShowErrPopupAlert(RETRO_MSP_MAX_MONTHS_ERROR);
+            }
+        }
+
+        private static bool IsRetroMAValueThree(ASPxComboBox retroMaCombo)
+        {
+            return retroMaCombo != null && retroMaCombo.Value != null
+                && Convert.ToString(retroMaCombo.Value).Trim() == "3";
         }
 
         /// <summary>

@@ -381,6 +381,8 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                     ValidateFilingDate();
                     ValidateVerficationDate();
                     if (_validate)
+                        ValidateRetroMAMonths();
+                    if (_validate)
                     {
                         if (!SaveProgramDetails())
                         {
