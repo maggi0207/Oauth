@@ -1,0 +1,599 @@
+﻿<!-- ClientRegitstation_Application -->
+<WorkflowRules x:Name="IntakeRAmode"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns="clr-namespace:Dhss.Framework.Web.UI.Workflow;assembly=Dhss.Framework.Web"
+  xmlns:dhss="clr-namespace:Dhss.Framework.Web.UserControls;assembly=Dhss.Framework.Web.UserControls"
+  xmlns:asp="clr-namespace:System.Web.UI.WebControls;assembly=System.Web"
+  xmlns:n="clr-namespace:Dhss.Framework.Web.UI.Workflow.Markup;assembly=Dhss.Framework.Web">
+
+
+
+    <WorkflowRules x:Name="ApplicationEntryRAmode" Text="Application Entry">
+        <WorkflowRules x:Name="ApplicationEntry" Text="Initiate Interview" Context="{n:DataSource Name='dsInitiateInterview_Case'}">
+            <WorkflowRules.DataSources>
+                <dhss:DataServiceLinqDataSource
+        x:Key="dsInitiateInterview_Case"
+        TableName="InitiateInterview_Application"
+        EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.InitiateInterview.InitiateInterview_Case"
+        ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.InitiateInterviewContextImpl"
+        Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Initiate.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='InitiateApplication_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+         x:Key="dsInitiateInterview_CaseHouseholdEntity"
+   TableName="InitiateInterview_Application"
+   EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.InitiateInterview.InitiateInterview_Case"
+   ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.InitiateInterviewContextImpl"
+   Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Initiate.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='InitiateCaseHouseholdEntity_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+          x:Key="dsInitiateInterview_NotEstablishedPersons"
+    TableName="InitiateInterview_Entity"
+    EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.InitiateInterview.InitiateInterview_Person"
+    ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.InitiateInterviewContextImpl"
+    Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Initiate.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='InitiateNotEstablishedEntity_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+            x:Key="dsInitiateInterview_EstablishedPersons"
+      TableName="InitiateInterview_Entity"
+      EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.InitiateInterview.InitiateInterview_Person"
+      ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.InitiateInterviewContextImpl"
+      Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Initiate.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='InitiateEstablishedEntity_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+            </WorkflowRules.DataSources>
+            <Page x:Name="InitiateIntrwOptionsAE" Text="Initiate Interview Options" Enabled="True" NavigateUrl="~/Intake/ApplicationEntry/Initiate/InitiateInterviewOptions.aspx"
+            Visible ="True"/>
+            <Page x:Name="CasehouseholdInfoSummaryAE" Text="Case Household" NavigateUrl="~/Intake/ApplicationEntry/Initiate/CasehouseholdInformationSummary.aspx" SummaryScreen="True"/>
+            <Page x:Name="CasehouseholdInfoAE" Text="Case Household" Visible="false" DetailScreen="true" NavigateUrl="~/Intake/ApplicationEntry/Initiate/CasehouseholdInformation.aspx" Context="{n:DataSource Name='dsInitiateInterview_CaseHouseholdEntity'}"/>
+            <Page x:Name="ApplicantsAltAddressSummaryAE" Text="Other Mailing Address" SummaryScreen="True" Visible="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Initiate.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsAlternateAddressPresent'}" NavigateUrl="~/Intake/ApplicationEntry/Initiate/ApplicantsAlternateAddressSummary.aspx"/>
+            <Page x:Name="ApplicantsAltAddressAE" Text="Other Mailing Address Details" DetailScreen="True" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Initiate/ApplicantsAlternateAddress.aspx"/>
+            <Page x:Name="IndvDemoSummaryAE" Text="Individual Demographics" SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Initiate/IndividualDemographicsSummary.aspx"/>
+            <Page x:Name="IndvDemoAE" Visible="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Initiate.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsEstablishedHasData'}"
+            Text="Individual Demographics Established Details" DetailScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Initiate/IndividualDemographics.aspx" Context="{n:DataSource Name='dsInitiateInterview_EstablishedPersons'}"/>
+            <Page x:Name="IndvDemoNotEstablishedAE" Visible="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Initiate.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsNotEstablishedHasData'}"
+            Text="Individual Demographics Not Established Details" DetailScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Initiate/IndividualDemographicsNotestablished.aspx" Context="{n:DataSource Name='dsInitiateInterview_NotEstablishedPersons'}"/>
+            <Page x:Name="StateWideClearanceAE" Text="Statewide Clearance" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Initiate/StateWideClearance.aspx"/>
+            <Page x:Name="IndvClearanceAE" Text="Individual Clearance" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Initiate/IndividualClearanceResults.aspx"/>
+            <Page x:Name="MatchedDemoDetailSummaryAE" Text="Matched Individual Demographics" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Initiate/MatchedIndividualSummary.aspx"/>
+            <Page x:Name="MatchedIndivDemoDetailsAE" Text="Matched Individual Details Details" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Initiate/MatchedIndividualDemographicsDetails.aspx"/>
+            <Page x:Name="EstablishIndvAE" Text="Establish Individual" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Initiate/EstablishIndividual.aspx"/>
+            <Page x:Name="EstablishIndvReviewAE" Text="Establish Individual" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Initiate/EstablishIndividualReview.aspx"/>
+            <Page x:Name="FinalClearanceStatusAE" Text="Final Clearance" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Initiate/FinalClearanceStatus.aspx"/>
+        </WorkflowRules>
+        <WorkflowRules x:Name="ApplicationTechnical" Text="Technical" Context="{n:DataSource Name='dsTechnical_Cases'}">
+            <!--Context="{n:DataSource Name='dsTechnical_Case'}">-->
+            <WorkflowRules.DataSources>
+                <dhss:DataServiceLinqDataSource
+          x:Key="dsTechnical_Cases"
+          TableName="Technical_Case"
+          EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.Technical.Technical_Case"
+          ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+          Where="ApplicationID = @ApplicationID">
+                    <dhss:DataServiceLinqDataSource.WhereParameters>
+                        <dhss:WorkflowParameter Property="ApplicationID" Name="ApplicationID" Source="StateKey" Type="Int32"/>
+                    </dhss:DataServiceLinqDataSource.WhereParameters>
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+            x:Key="dsTechnical_PersonDemographicsDetails"
+            TableName="Technical_PersonDemographics"
+            EntityTypeName="Technical_PersonDemographics"
+            ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+            Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_PersonDemographics_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+            x:Key="dsTechnical_ProgramDetails"
+            TableName="Technical_ProgramDetail"
+            EntityTypeName="Technical_ProgramDetail"
+            ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+            Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_ProgramDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+            x:Key="dsTechnical_AdditionalProgramDetails"
+            TableName="Technical_ProgramDetail"
+            EntityTypeName="Technical_ProgramDetail"
+            ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+            Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_AdditionalProgramDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+           x:Key="dsTechnical_TaxDependencyDetails"
+           TableName="Technical_TaxDependency"
+           EntityTypeName="Technical_TaxDependency"
+           ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+           Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_TaxDependencyDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+            x:Key="dsTechnical_ChildCareAddDemographicsDetails"
+            TableName="Technical_ChildCareAdditionalDemographics"
+            EntityTypeName="Technical_ChildCareAdditionalDemographics"
+            ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+            Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_ChildCareAdditionalDemographics_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+            x:Key="dsTechnical_PersonRelationsDetails"
+            TableName="Technical_PersonRelation"
+            EntityTypeName="Technical_PersonRelation"
+            ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+            Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_PersonRelations_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+            x:Key="dsTechnical_PersonRefugeeAllDetails"
+            TableName="Technical_PersonRefugee"
+            EntityTypeName="Technical_PersonRefugee"
+            ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+            Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_PersonRefugee_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+            x:Key="dsTechnical_AlienSponsorDetails"
+            TableName="Technical_Sponsor"
+            EntityTypeName="Technical_Sponsor"
+            ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+            Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_SponsorDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+            x:Key="dsTechnical_LossofHealthInsuranceDetails"
+            TableName="Technical_HealthInsuranceLoss"
+            EntityTypeName="Technical_HealthInsuranceLoss"
+            ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+            Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_HealthInsuranceLossDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+           x:Key="dsTechnical_InstitutionInfoDetails"
+           TableName="Technical_InstitutionInfo"
+           EntityTypeName="Technical_InstitutionInfo"
+           ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+           Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_InstitutionInfoDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+           x:Key="dsTechnical_BenefitsReceivedDetails"
+           TableName="Technical_IndividualBenefits"
+           EntityTypeName="Technical_IndividualBenefits"
+           ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+           Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_IndividualBenefitsDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+           x:Key="dsTechnical_FosterCareAdoptionInfoDetails"
+           TableName="Technical_FosterCare"
+           EntityTypeName="Technical_FosterCare"
+           ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+           Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_FosterCareDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+           x:Key="dsTechnical_SchoolEnrollmentDetails"
+           TableName="Technical_SchoolEnrollment"
+           EntityTypeName="Technical_SchoolEnrollment"
+           ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+           Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_SchoolEnrollmentDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+           x:Key="dsTechnical_PregnancyDetails"
+           TableName="Technical_Pregnancy"
+           EntityTypeName="Technical_Pregnancy"
+           ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+           Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_PregnancyDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+           x:Key="dsTechnical_DisabilityDetails"
+           TableName="Technical_Disability"
+           EntityTypeName="Technical_Disability"
+           ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+           Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_DisabilityDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+           x:Key="dsTechnical_HomeCommunityBasedServicesDetails"
+           TableName="Technical_HomeCommunityBasedService"
+           EntityTypeName="Technical_HomeCommunityBasedService"
+           ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+           Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_HomeCommunityBasedServiceDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+                   x:Key="dsTechnical_SpousalImpoverishmentDetails"
+                   TableName="Technical_SpousalImpoverishment"
+                   EntityTypeName="Technical_SpousalImpoverishment"
+                   ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+                   Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_SpousalImpoverishmentDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+                          x:Key="dsTechnical_ProtectedSSIDetails"
+                          TableName="Technical_ProtectedSSI"
+                          EntityTypeName="Technical_ProtectedSSI"
+                          ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+                          Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_ProtectedSSIDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+                         x:Key="dsTechnical_ContinuouslyEligibleNewbornDetails"
+                         TableName="Technical_ContinuouslyEligibleNewborn"
+                         EntityTypeName="Technical_ContinuouslyEligibleNewborn"
+                         ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+                         Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_ContinuouslyEligibleNewbornDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+                         x:Key="dsTechnical_CRDPInfoDetails"
+                         TableName="Technical_CRDPInfo"
+                         EntityTypeName="Technical_CRDPInfo"
+                         ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+                         Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_CRDPInfoDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                         x:Key="dsTechnical_BreastAndCervicalCancerDetails"
+                         TableName="Technical_BreastAndCervicalCancer"
+                         EntityTypeName="Technical_BreastAndCervicalCancer"
+                         ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+                         Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_BreastAndCervicalCancerDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                        x:Key="dsTechnical_DisasterBenefitInfoDetails"
+                        TableName="Technical_DisasterBenefitInfo"
+                        EntityTypeName="Technical_DisasterBenefitInfo"
+                        ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.TechnicalContextImpl"
+                        Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='Technical_DisasterBenefitInfoDetails_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+            </WorkflowRules.DataSources>
+            <Page x:Name="PrimaryPersonAssignmentAE" Text="Primary Person Assignment" NavigateUrl="~/Intake/ApplicationEntry/Technical/PrimaryPersonAssignment.aspx" />
+            <Page x:Name="ProgramofAssistanceSummaryAE" Text="Program of Assistance" SummaryScreen="True" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Technical/ProgramofAssistanceSummary.aspx"  />
+            <Page x:Name="ProgramofAssistanceAE" Text="Program of Assistance Details" DetailScreen="True" Visible="false" 
+            NavigateUrl="~/Intake/ApplicationEntry/Technical/ProgramofAssistance.aspx" Context="{n:DataSource Name='dsTechnical_ProgramDetails'}"/>
+            <Page x:Name="AdditionalPrgDetailsSummaryAE" Text="Additional Program Details" SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/AdditionalProgramDetailsSummary.aspx"
+             Visible ="false"/>
+            <Page x:Name="AdditionalPrgDetailsAE" Text="Additional Program Details" DetailScreen="True"   NavigateUrl="~/Intake/ApplicationEntry/Technical/AdditionalProgramDetails.aspx"
+             Visible ="false" Context="{n:DataSource Name='dsTechnical_AdditionalProgramDetails'}" />
+            <Page x:Name="IndivLivingAgmtAE" Text="Individual Living Arrangement"  NavigateUrl="~/Intake/ApplicationEntry/Technical/LivingArrangement.aspx"/>
+            <Page x:Name="TaxDependencySummaryAE" Text="Tax Dependency" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/TaxDependencyInformationSummary.aspx"
+              Visible ="false"/>
+            <Page x:Name="TaxDependencyAE" Text="Tax Dependency Details"  DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/TaxDependencyInformation.aspx"
+            Visible ="false" Context="{n:DataSource Name='dsTechnical_TaxDependencyDetails'}"/>
+            <Page x:Name="AdditionalIndivDemoSummaryAE" Text="Additional Individual Demographics" SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/AdditionalIndividualDemographicsSummary.aspx"/>
+            <Page x:Name="AdditionalIndividualDemographicsAE" Text="Additional Individual Demographics Details" DetailScreen="True"   NavigateUrl="~/Intake/ApplicationEntry/Technical/AdditionalIndividualDemographics.aspx" Context="{n:DataSource Name='dsTechnical_PersonDemographicsDetails'}"/>
+            <Page x:Name="ChildCareAdditionalDemoSummaryAE" Text="Child Care Additional Demographics"  SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/ChildCareAdditionalDemographicsSummary.aspx"
+            Visible ="false"/>
+            <Page x:Name="ChildCareAdditionalDemoAE" Text="Child Care Additional Demographics Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/ChildCareAdditionalDemographics.aspx"
+            Visible ="false" Context="{n:DataSource Name='dsTechnical_ChildCareAddDemographicsDetails'}"/>
+            <Page x:Name="HouseholdRelationshipsSummaryAE" Text="Household Relationships" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/HouseholdRelationshipsSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsHouseholdRelationshipEnable'}"/>
+            <Page x:Name="HouseholdRelationshipsAE" Text="Household Relationships Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/HouseholdRelationships.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsHouseholdRelationshipEnable'}"
+            Context="{n:DataSource Name='dsTechnical_PersonRelationsDetails'}"/>
+            <Page x:Name="AlienRefugeeSummaryAE" Text="Alien/Refugee" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/AlienRefugeeSummary.aspx"
+             Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsAlienRefugeeEnabled'}"/>
+            <Page x:Name="AlienRefugeeAE" Text="Alien/Refugee Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/AlienRefugee.aspx"
+             Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsAlienRefugeeEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_PersonRefugeeAllDetails'}"/>
+            <Page x:Name="AlienRefugeeSponsorSummaryAE" Text="Alien/Refugee Sponsor" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/AlienRefugeeSponsorSummary.aspx"
+             Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsAlienRefugeeSponsorEnabled'}"/>
+            <Page x:Name="AlienRefugeeSponsorAE" Text="Alien/Refugee Sponsor Details" DetailScreen="True"   NavigateUrl="~/Intake/ApplicationEntry/Technical/AlienRefugeeSponsor.aspx"
+             Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsAlienRefugeeSponsorEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_AlienSponsorDetails'}"/>
+            <Page x:Name="TeenParentExemptionAE" Text="Teen Parent Exemption" NavigateUrl="~/Intake/ApplicationEntry/Technical/TeenParentExemption.aspx"
+             Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsTeenparentEnabled'}"/>
+            <Page x:Name="InstitutionSummaryAE" Text="Institution" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/InstitutionInformationSummary.aspx"
+              Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsInstitutionEnabled'}"/>
+            <Page x:Name="InstitutionAE" Text="Institution Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/InstitutionInformation.aspx"
+             Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsInstitutionEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_InstitutionInfoDetails'}"/>
+            <Page x:Name="IncarcerationSummaryAE" Text="Incarceration" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/IncarcerationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsIncarcerationEnabled'}"/>
+            <Page x:Name="IncarcerationAE" Text="Incarceration Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/IncarcerationDetails.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsIncarcerationEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_InstitutionInfoDetails'}"/>
+            <Page x:Name="IndivBenefitsRecSummaryAE" Text="Individual Benefits Received" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/BenefitsReceivedSummary.aspx"/>
+            <Page x:Name="IndivBenefitsRecAE" Text="Individual Benefits Received Details"  DetailScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/BenefitsReceived.aspx" Context="{n:DataSource Name='dsTechnical_BenefitsReceivedDetails'}"/>
+            <Page x:Name="FosterCareAdoptionSummaryAE" Text="Foster Care/Adoption" SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/FosterCareAdoptionInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsFosterCareEnabled'}"/>
+            <Page x:Name="FosterCareAdoptionAE" Text="Foster Care/Adoption Details" DetailScreen="True"   NavigateUrl="~/Intake/ApplicationEntry/Technical/FosterCareAdoptionInformation.aspx"
+             Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsFosterCareEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_FosterCareAdoptionInfoDetails'}"/>
+            <Page x:Name="SchoolEnrollSummaryAE" Text="School Enrollment" Visible="false" SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/SchoolEnrollmentSummary.aspx"/>
+            <Page x:Name="SchoolEnrollAE" Text="School Enrollment Details" Visible="false" DetailScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/SchoolEnrollment.aspx" Context="{n:DataSource Name='dsTechnical_SchoolEnrollmentDetails'}"/>
+            <Page x:Name="TechnicalQuestionsAE" Text="Technical Questions" NavigateUrl="~/Intake/ApplicationEntry/Technical/TechnicalQuestions.aspx"/>
+            <Page x:Name="PregnancySummaryAE" Text="Pregnancy" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/PregnancySummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsPregnancyEnabled'}"/>
+            <Page x:Name="PregnancyDetailsAE" Text="Pregnancy Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/Pregnancy.aspx"
+             Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsPregnancyEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_PregnancyDetails'}"/>
+            <Page x:Name="DisabilitySummaryAE" Text="Disability" SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/DisabilitySummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsDisabilityEnabled'}"/>
+            <Page x:Name="DisabilityAE" Text="Disability Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/Disability.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsDisabilityEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_DisabilityDetails'}"/>
+            <Page x:Name="HomeCommuBasedSerSummaryAE" Text="Home and Community Based Services" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/HomeCommunityBasedServicesSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsHBCSEnabled'}"/>
+            <Page x:Name="HomeCommuBasedSerAE" Text="Home and Community Based Services Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/HomeCommunityBasedServices.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsHBCSEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_HomeCommunityBasedServicesDetails'}"/>
+            <Page x:Name="SpousalImpSummaryAE" Text="Spousal Impoverishment" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/SpousalImpoverishmentSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsSpousalImpoverishmentEnabled'}"/>
+            <Page x:Name="SpousalImpAE" Text="Spousal Impoverishment Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/SpousalImpoverishment.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsSpousalImpoverishmentEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_SpousalImpoverishmentDetails'}"/>
+            <Page x:Name="ProtectedSSISummaryAE" Text="Protected SSI" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/ProtectedSSISummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsProtectedSSIEnabled'}"/>
+            <Page x:Name="ProtectedSSIAE" Text="Protected SSI Details" DetailScreen="True"   NavigateUrl="~/Intake/ApplicationEntry/Technical/ProtectedSSI.aspx"
+            Context="{n:DataSource Name='dsTechnical_ProtectedSSIDetails'}"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsProtectedSSIEnabled'}"/>
+            <Page x:Name="NewBornSummaryAE" Text="Continuously Eligible Newborns" SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/NewBornSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsNewBornEnabled'}"/>
+            <Page x:Name="NewbornsAE" Text="Continuously Eligible Newborns Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/Newborns.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsNewBornEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_ContinuouslyEligibleNewbornDetails'}"/>
+            <Page x:Name="CRDPInfoSummaryAE" Text="Clinical Renal Disease Program" SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/CRDPInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsCRDPInfoEnabled'}"/>
+            <Page x:Name="CRDPInfoAE" Text="Clinical Renal Disease Program Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/CRDPInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsCRDPInfoEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_CRDPInfoDetails'}"/>
+            <Page x:Name="BreastandCervicalCancerInfoSummaryAE" Text="Breast and Cervical Cancer" SummaryScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/BreastandCervicalCancerInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsBCCPEnabled'}"/>
+            <Page x:Name="BreastandCervicalCancerInfoAE" Text="Breast and Cervical Cancer Details" DetailScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/BreastandCervicalCancerInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical.ApplicationEntryDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='IsBCCPEnabled'}"
+            Context="{n:DataSource Name='dsTechnical_BreastAndCervicalCancerDetails'}"/>
+            <Page x:Name="BenefitCapInfoAE" Text="Benefit Cap" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/Technical/BenefitCapInformation.aspx"/>
+            <Page x:Name="AdditionalCaseDetailsSummaryAE" Text="Additional Case Details"  Visible="false" SummaryScreen="True"  NavigateUrl="~/Intake/ApplicationEntry/Technical/AdditionalCaseDetailsSummary.aspx"/>
+            <Page x:Name="AdditionalCaseDetailsAE" Text="Additional Case Details" Visible="false" DetailScreen="True" NavigateUrl="~/Intake/ApplicationEntry/Technical/AdditionalCaseDetails.aspx" Context="{n:DataSource Name='dsTechnical_DisasterBenefitInfoDetails'}"/>
+        </WorkflowRules>
+
+        <WorkflowRules x:Name="AbsentParent" Text="Non-Custodial Parent" Context="{n:DataSource Name='dsAbsentParent_Case'}">
+            <WorkflowRules.DataSources>
+                <dhss:DataServiceLinqDataSource
+          x:Key="dsAbsentParent_Case"
+          TableName="AbsentParent_Case"
+          EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.AbsentParent.AbsentParent_Case"
+         ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.AbsentParentContextImpl"
+           Where="ApplicationID = @ApplicationID">
+                    <dhss:DataServiceLinqDataSource.WhereParameters>
+                        <dhss:WorkflowParameter Property="ApplicationID" Name="ApplicationID" Source="StateKey" Type="Int32"  />
+                    </dhss:DataServiceLinqDataSource.WhereParameters>
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+          x:Key="dsAbsentParent_Persons"
+          TableName="AbsentParent_AbsentParentInfo"
+          EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.AbsentParent.AbsentParent_AbsentParentInfo"
+          ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.AbsentParentContextImpl"
+          Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.AbsentParent.AbsentParentDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='AbsentParent_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+         x:Key="dsAbsentParent_ChildSupportCoOperation"
+         TableName="AbsentParent_AbsentParentChildSupportCoOperation"
+         EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.AbsentParent.AbsentParent_AbsentParentChildSupportCoOperation"
+         ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.AbsentParentContextImpl"
+         Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.AbsentParent.AbsentParentDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='AbsentParentChildSupportCoOperation_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+
+                <dhss:DataServiceLinqDataSource
+        x:Key="dsAbsentParent_Cooperation"
+        TableName="AbsentParent_AbsentParentCooperation"
+        EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.AbsentParent.AbsentParent_Cooperation"
+        ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.AbsentParentContextImpl"
+        Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.AbsentParent.AbsentParentDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='AbsentParentCooperation_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+     x:Key="dsAbsentParent_CourtOrder"
+     TableName="AbsentParent_AbsentParentOrderInfo"
+     EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.AbsentParent.AbsentParent_AbsentParentOrderInfo"
+     ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.AbsentParentContextImpl"
+     Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.AbsentParent.AbsentParentDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='AbsentParentOrderInfo_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+    x:Key="dsAbsentParentMedicalSupportCooperation"
+    TableName="AbsentParent_AbsentParentMedicalSupportCooperation"
+    EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.AbsentParent.AbsentParent_AbsentParentMedicalSupportCooperation"
+    ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.AbsentParentContextImpl"
+    Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.AbsentParent.AbsentParentDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='AbsentParentMedicalSupportCooperation_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+    x:Key="dsAbsentParent_EmploymentInformation"
+    TableName="AbsentParent_EmployerPerson"
+    EntityTypeName="Dhss.Assist.WorkerWeb.Entity.ApplicationEntry.AbsentParent.AbsentParent_EmployerPerson"
+    ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.AbsentParentContextImpl"
+    Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.AbsentParent.AbsentParentDataServiceLinqDataSource, Dhss.Assist.WorkerWeb.Web', Name='AbsentParentEmploymentInfo_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+            </WorkflowRules.DataSources>
+            <Page x:Name="AbsParentDemoSummary" SummaryScreen="True" Visible="false" Text="Non-Custodial Parent Demographics" NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentDemographicsSummary.aspx"/>
+            <Page x:Name="AbsEstParentDemoDetail" DetailScreen="True" Visible="false" Text="Established Non-Custodial Parent Demographics Details"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentDemographics.aspx" Context="{n:DataSource Name='dsAbsentParent_Persons'}"/>
+            <Page x:Name="AbsUnEstParentDemoDetail" DetailScreen="True" Visible="false" Text="Unestablished Non-Custodial Parent Demographics Details"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentDemographicsUnestablished.aspx" Context="{n:DataSource Name='dsAbsentParent_Persons'}"/>
+            <Page x:Name="StateWideClearanceAbParent" Text="Statewide Clearance" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/StateWideClearance.aspx"/>
+            <Page x:Name="IndvClearanceAbParent" Text="Individual Clearance" Visible="false"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/IndividualClearanceResults.aspx"/>
+            <Page x:Name="MatchedDemoDetailSummaryAbParent" Text="Matched Individual Demographics" Visible="false"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/MatchedIndividualSummary.aspx"/>
+            <Page x:Name="MatchedIndivDemoDetailsAbParent" Text="Matched Individual Details" Visible="false"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/MatchedIndividualDemographicsDetails.aspx"/>
+            <Page x:Name="EstablishIndvAbParent" Text="Establish Individual" Visible="false"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/EstablishIndividual.aspx"/>
+            <Page x:Name="EstablishIndvReviewAbParent" Text="Establish Individual" Visible="false"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/EstablishIndividualReview.aspx"/>
+            <Page x:Name="FinalClearanceStatusAbParent" Text="Final Clearance" Visible="false"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/FinalClearanceStatus.aspx"/>
+            <Page x:Name="AbsParentGeneralSummary"  SummaryScreen="True" Visible="false" Text="Non-Custodial Parent General Information"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentGeneralInformationSummary.aspx"/>
+            <Page x:Name="AbsParentGeneralDetail" DetailScreen="True" Visible="false" Text="Non-Custodial Parent General Information Details"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentGeneralInformation.aspx" Context="{n:DataSource Name='dsAbsentParent_Persons'}"/>
+            <Page x:Name="MatchAbsParentChildren" Text="Match Non-Custodial Parents With children" Visible="false" NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/MatchAbsentParentsWithchildren.aspx"/>
+            <Page x:Name="AbsParentCourtOrderSummary" SummaryScreen="True" Visible="false" Text="Non-Custodial Parent Court Order"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentCourtOrderInfoSummary.aspx"/>
+            <Page x:Name="AbsParentCourtOrderDetail" DetailScreen="True" Visible="false" Text="Non-Custodial Parent Court Order Details"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentCourtOrderInfo.aspx" Context="{n:DataSource Name='dsAbsentParent_CourtOrder'}"/>
+            <Page x:Name="AbsParentEmpSummary" SummaryScreen="True" Visible="false" Text="Non-Custodial Parent Employment"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentEmploymentInformationSummary.aspx"/>
+            <Page x:Name="AbsParentEmpDetail" DetailScreen="True" Visible="false" Text="Non-Custodial Parent Employment Details"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentEmploymentInformation.aspx" Context="{n:DataSource Name='dsAbsentParent_EmploymentInformation'}"/>
+            <Page x:Name="AbsParentCoopSummary" SummaryScreen="True" Visible="false" Text="Non-Custodial Parent Cooperation"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentCooperationInformationSummary.aspx"/>
+            <Page x:Name="AbsParentCoopDetail" DetailScreen="True" Visible="false" Text="Non-Custodial Parent Cooperation Details"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentCooperationInformation.aspx" Context="{n:DataSource Name='dsAbsentParentMedicalSupportCooperation'}"/>
+            <Page x:Name="AbsParentCoopMedSupportSummary" SummaryScreen="True" Visible="false" Text="Non-Custodial Parent Cooperation Medical Support"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentCooperationMedicalSupportSummary.aspx"/>
+            <Page x:Name="AbsParentCoopMedSupportDetail" DetailScreen="True" Visible="false" Text="Non-Custodial Parent Cooperation Medical Support Details"  NavigateUrl="~/Intake/ApplicationEntry/AbsentParent/AbsentParentCooperationMedicalSupport.aspx" Context="{n:DataSource Name='dsAbsentParent_Cooperation'}"/>
+        </WorkflowRules>
+        <WorkflowRules x:Name="ApplicationResource" Text="Resource">
+            <WorkflowRules.DataSources>
+                <dhss:DataServiceLinqDataSource
+                x:Key="dsResourceCase"
+                TableName="Resource_Case"
+                EntityTypeName="Resource_Case"
+                ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Case_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+              x:Key="dsVehicleResource"
+              TableName="Resource_VehicleResource"
+              EntityTypeName="Resource_VehicleResource"
+              ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+              Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Vehicle_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                        x:Key="dsLiquidResource"
+                        TableName="Resource_LiquidResource"
+                        EntityTypeName="Resource_LiquidResource"
+                        ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                        Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Liquid_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                x:Key="dsRealPropertyResource"
+                TableName="Resource_RealPropertyResource"
+                EntityTypeName="Resource_RealPropertyResource"
+                ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Real_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                        x:Key="dsPersonalPropertyResource"
+                        TableName="Resource_PersonalPropertyResource"
+                        EntityTypeName="Resource_PersonalPropertyResource"
+                        ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                        Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Personal_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                        x:Key="dsLifeInsuranceResource"
+                        TableName="Resource_LifeInsuranceResource"
+                        EntityTypeName="Resource_LifeInsuranceResource"
+                        ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                        Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Life_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                        x:Key="dsBurialResource"
+                        TableName="Resource_BurialResource"
+                        EntityTypeName="Resource_BurialResource"
+                        ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                        Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Burial_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                        x:Key="dsAnnuityResource"
+                        TableName="Resource_AnnuityResource"
+                        EntityTypeName="Resource_AnnuityResource"
+                        ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                        Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Annuity_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                          x:Key="dsTrustResource"
+                          TableName="Resource_TrustResource"
+                          EntityTypeName="Resource_TrustResource"
+                          ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                          Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Trust_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                          x:Key="dsResourceTransfer"
+                          TableName="Resource_ResourceTransfer"
+                          EntityTypeName="Resource_ResourceTransfer"
+                          ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                          Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Transfer_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+                <dhss:DataServiceLinqDataSource
+                          x:Key="dsResourceAssesment"
+                          TableName="Resource_ResourceAssesment"
+                          EntityTypeName="Resource_ResourceAssesment"
+                          ContextTypeName="Dhss.Assist.WorkerWeb.Web.Infrastructure.Services.ResourceContextImpl"
+                          Selecting="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='Resource_Assessment_Selecting'}">
+                </dhss:DataServiceLinqDataSource>
+            </WorkflowRules.DataSources>
+            <Page x:Name="ResourceQuestions" Text="Resource Questions" NavigateUrl="~/Intake/ApplicationEntry/Resources/ResourceQuestions.aspx" Context="{n:DataSource Name='dsResourceCase'}"/>
+
+            <Page x:Name="VehicleResourceInformationSummary" Text="Vehicle Resource"  NavigateUrl="~/Intake/ApplicationEntry/Resources/VehicleResourceInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsVehicleResourceEnabled'}"
+            SummaryScreen="True"
+            />
+            <Page x:Name="VehicleResourceInformation" Text="Vehicle Resource Details" NavigateUrl="~/Intake/ApplicationEntry/Resources/VehicleResourceInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsVehicleResourceDetailEnabled'}"
+            DetailScreen="True"
+            Context="{n:DataSource Name='dsVehicleResource'}"/>
+
+            <Page x:Name="LiquidResourceSummary" Text="Liquid Resource" NavigateUrl="~/Intake/ApplicationEntry/Resources/LiquidResourceSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsLiquidResourceEnabled'}"
+            SummaryScreen="True"
+            />
+            <Page x:Name="LiquidResourceInformation" Text="Liquid Resource Details"  NavigateUrl="~/Intake/ApplicationEntry/Resources/LiquidResource.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsLiquidResourceDetailEnabled'}"
+            DetailScreen="True"
+            Context="{n:DataSource Name='dsLiquidResource'}"/>
+
+            <Page x:Name="RealPropertyInformationSummary" Text="Real Property" NavigateUrl="~/Intake/ApplicationEntry/Resources/RealPropertyInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsRealPropResourceEnabled'}"
+            SummaryScreen="True"
+            />
+            <Page x:Name="RealPropertyInformation" Text="Real Property Details"  NavigateUrl="~/Intake/ApplicationEntry/Resources/RealPropertyInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsRealPropResourceDetailEnabled'}"
+            DetailScreen="True"
+            Context="{n:DataSource Name='dsRealPropertyResource'}"/>
+
+            <Page x:Name="PersonalPropertyInformationSummary" Text="Personal Property" NavigateUrl="~/Intake/ApplicationEntry/Resources/PersonalPropertyInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsPersPropResourceEnabled'}"
+            SummaryScreen="True"
+            />
+            <Page x:Name="PersonalPropertyInformation" Text="Personal Property Details"  NavigateUrl="~/Intake/ApplicationEntry/Resources/PersonalPropertyInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsPersPropResourceDetailEnabled'}"
+            DetailScreen="True"
+            Context="{n:DataSource Name='dsPersonalPropertyResource'}"/>
+
+            <Page x:Name="LifeInsuranceInformationSummary" Text="Life Insurance" NavigateUrl="~/Intake/ApplicationEntry/Resources/LifeInsuranceInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsLifeInsResourceEnabled'}"
+            SummaryScreen="True"
+            />
+            <Page x:Name="LifeInsuranceInformation" Text="Life Insurance Details"  NavigateUrl="~/Intake/ApplicationEntry/Resources/LifeInsuranceInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsLifeInsResourceDetailEnabled'}"
+            DetailScreen="True"
+            Context="{n:DataSource Name='dsLifeInsuranceResource'}"/>
+
+            <Page x:Name="BurialResourceInformationSummary" Text="Burial Resource" NavigateUrl="~/Intake/ApplicationEntry/Resources/BurialResourceInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsBurialResourceEnabled'}"
+            SummaryScreen="True"
+            />
+            <Page x:Name="BurialResourceInformation" Text="Burial Resource Details"  NavigateUrl="~/Intake/ApplicationEntry/Resources/BurialResourceInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsBurialResourceDetailEnabled'}"
+            DetailScreen="True"
+            Context="{n:DataSource Name='dsBurialResource'}"/>
+
+            <Page x:Name="AnnuityResourceInformationSummary" Text="Annuity Resource" NavigateUrl="~/Intake/ApplicationEntry/Resources/AnnuityResourceInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsAnnuityResourceEnabled'}"
+            SummaryScreen="True"
+            />
+            <Page x:Name="AnnuityResourceInformation" Text="Annuity Resource Details"  NavigateUrl="~/Intake/ApplicationEntry/Resources/AnnuityResourceInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsAnnuityResourceDetailEnabled'}"
+            DetailScreen="True"
+            Context="{n:DataSource Name='dsAnnuityResource'}"/>
+
+            <Page x:Name="TrustResourceInformationSummary" Text="Trust Resource" NavigateUrl="~/Intake/ApplicationEntry/Resources/TrustResourceInformationSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsTrustResourceEnabled'}"
+            SummaryScreen="True"
+            />
+            <Page x:Name="TrustResourceInformation" Text="Trust Resource Details"  NavigateUrl="~/Intake/ApplicationEntry/Resources/TrustResourceInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsTrustResourceDetailEnabled'}"
+            DetailScreen="True"
+            Context="{n:DataSource Name='dsTrustResource'}"/>
+
+            <Page x:Name="ResourceTransferSummary" Text="Resource Transfer" NavigateUrl="~/Intake/ApplicationEntry/Resources/ResourceTransferSummary.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsResourceTransferEnabled'}"
+            SummaryScreen="True"
+            />
+            <Page x:Name="ResourceTransfer" Text="Resource Transfer Details"  NavigateUrl="~/Intake/ApplicationEntry/Resources/ResourceTransfer.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsResourceTransferDetailEnabled'}"
+            DetailScreen="True"
+            Context="{n:DataSource Name='dsResourceTransfer'}"/>
+
+            <Page x:Name="ResourceAssessmentInformation" Text="Resource Assessment" NavigateUrl="~/Intake/ApplicationEntry/Resources/ResourceAssessmentInformation.aspx"
+            Visible ="{n:Method Type='Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Resources.ResourceDataContexts, Dhss.Assist.WorkerWeb.Web', Name='IsResourceAssessmentEnabled'}"
+            Context="{n:DataSource Name='dsResourceAssesment'}"/>
+        </WorkflowRules>
+
+    </WorkflowRules>
+
+</WorkflowRules>
