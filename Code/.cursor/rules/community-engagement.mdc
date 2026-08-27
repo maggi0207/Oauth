@@ -1,0 +1,16 @@
+---
+description: Community Engagement Details/Summary — keep save/retrieve original, redirect Next
+globs: "**/CommunityEngagement*.{aspx,aspx.cs,js,aspx.designer.cs}"
+alwaysApply: false
+---
+
+# Community Engagement
+
+Fix `CommunityEngagementDetails.aspx.cs` in this snapshot. Allowed extras vs a working save/retrieve page:
+
+1. After save: `SetPageComplete()` and `SetPageComplete(IntakeConstants.COMMUNITYENGAGEMENT_SUMMARY_AE, true)`.
+2. `NavigateNext` / `ResumeNavigation`: `Response.Redirect` to Volunteering if `ScheduleVolWorkUnPaidScreen`, else Community Engagement Summary. Do not call `base.NavigateNext()`.
+
+Do not reintroduce: `ValidatePage()` overhaul, `IsVolunteeringWorkProgramEnabled` DB gating, filtered `GetCommunityEngagementDetails(applicationId)`, `page.Visible = true`, `AnchorObject` session sync, or Summary `NavigateNext` overrides.
+
+`ScheduleVolWorkUnPaidScreen` is set in `SaveDataCEMHDeatils()`. Retrieve lives in Summary `DsCommunityEngagementSummary_Selecting` → `TechnicalContextOperations.GetAllActiveRecordsCommunityEngagementSummary`.

@@ -1,0 +1,15 @@
+---
+description: DHSS Assist WorkerWeb intake snapshot — Web Forms; fix here, copy into original app
+alwaysApply: true
+---
+
+# Project context
+
+This folder is a **working snapshot** of DHSS Assist WorkerWeb intake pages (ASP.NET Web Forms + DevExpress + `WorkflowPage<T>`). It is **not** ASP.NET Core.
+
+Cursor must **analyze and fix files in this workspace directly**. After a fix, list the changed files so the user can copy them into the original application.
+
+- Prefer sibling pages already in this snapshot (`TaxDependencyInformation`, `TechnicalQuestions`) over new patterns.
+- Do not change `ApplicationEntryDataServiceLinqDataSource.cs`, `Intake-*.xaml`, or `TechnicalContextOperations.cs` unless the user asks, or retrieve/save is proven broken there.
+- Navigation-only fixes belong in the page `.aspx.cs`, not in the data layer.
+- Do not commit unless the user asks.

@@ -1,0 +1,14 @@
+---
+description: WorkflowPage save, complete, and Next/Previous conventions
+globs: "**/*.{aspx.cs,aspx.bindings.cs}"
+alwaysApply: false
+---
+
+# Intake WorkflowPage conventions
+
+- `SaveData()` writes the database. `NavigateNext()` only moves the worker. Do not mix them.
+- On **detail** pages (`DetailScreen="True"`), `base.NavigateNext()` advances the **record in context** and reloads the same `.aspx`. Use `Response.Redirect` (same as Back To Summary) when Next must leave the page.
+- Do not stall Next on popups unless the popup is actually showing (`ShowOnPageLoad`). DevExpress popup callbacks cannot use `Response.Redirect`; use `RedirectOnCallback` only in that callback.
+- After a successful save, call `SetPageComplete()` for the current page. To check off the left-nav **summary**, also `SetPageComplete("…SummaryAE", true)` — `SetPreviousPageComplete` / `IsContextComplete()` wait for every household member.
+- Do not assign `page.Visible = true` on `IWorkflowPage`. `Visible` is `Field<bool>` and XAML `{n:Method …}` re-evaluates it every request.
+- Keep session keys that load FormViews (`CommunityEngagementSummaryID`, `TaxDependentID`). Do not overwrite them from `AnchorObject` unless the page already does that.

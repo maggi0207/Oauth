@@ -1,0 +1,16 @@
+---
+description: Intake workflow XAML page order and visibility
+globs: "**/*Intake*.xaml"
+alwaysApply: false
+---
+
+# Intake workflow XAML
+
+Pages under Technical are **flat siblings**, not nested. Summary + Details pairs:
+
+- `CommunityEngagementSummaryAE` / `CommunityEngagementDetailsAE`
+- `VolunteeringWorkProgramUnpaidWorkSummaryAE` / `VolunteeringWorkProgramUnpaidWorkAE`
+
+`x:Name` must match `IntakeConstants`. Visibility is `{n:Method … Name='Is…Enabled'}` on `ApplicationEntryDataServiceLinqDataSource`. Code cannot force visibility across requests.
+
+Do not add duplicate Page entries. `IsVolunteeringWorkProgramEnabled` in the working copy returns `true`; do not change it unless asked.
