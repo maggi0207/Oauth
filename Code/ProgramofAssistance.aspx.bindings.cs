@@ -380,8 +380,7 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                 {
                     ValidateFilingDate();
                     ValidateVerficationDate();
-                    if (_validate)
-                        ValidateRetroMAMonths();
+                    ValidateRetroMAMonths();
                     if (_validate)
                     {
                         if (!SaveProgramDetails())
@@ -392,14 +391,20 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                             _isRefreshRecord = false;
                             return;
                         }
-                        if (IntakeContext.Instance.CaseMode != "R" && IsNewIndivRequested())
+                        if (IsNewIndivRequested())
                         {
-                            var programDetailRecord = new Technical_ProgramDetail();
-                            programDetailRecord.ProgramDetailID = Convert.ToInt32(fvTechnical_ProgramDetail.DataKey["ProgramDetailID"]);
-                            programDetailRecord.ProgramCode = _programCode;
-                            TechnicalSessionContext.Instance.IsShowAGReviewPopUp = ServicesApplicationHub.IntakeTechnical.IsCaseToRunInReviewMode(programDetailRecord, Convert.ToInt32(WorkflowSession.Instance.RootFrame.State.Key), false);
-
-
+                            if (_programCode == "MA")
+                            {
+                                _showMaNewPersonLookbackInfo = true;
+                                ShowInformationPopUp(ErrorMessages.CCMTBD9);
+                            }
+                            if (IntakeContext.Instance.CaseMode != "R")
+                            {
+                                var programDetailRecord = new Technical_ProgramDetail();
+                                programDetailRecord.ProgramDetailID = Convert.ToInt32(fvTechnical_ProgramDetail.DataKey["ProgramDetailID"]);
+                                programDetailRecord.ProgramCode = _programCode;
+                                TechnicalSessionContext.Instance.IsShowAGReviewPopUp = ServicesApplicationHub.IntakeTechnical.IsCaseToRunInReviewMode(programDetailRecord, Convert.ToInt32(WorkflowSession.Instance.RootFrame.State.Key), false);
+                            }
                         }
 
                     }
