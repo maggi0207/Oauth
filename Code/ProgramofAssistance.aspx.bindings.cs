@@ -395,8 +395,7 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                         {
                             if (_programCode == "MA")
                             {
-                                _showMaNewPersonLookbackInfo = true;
-                                ShowInformationPopUp(ErrorMessages.CCMTBD9);
+                                TechnicalSessionContext.Instance.IsShowMaLookbackPopUp = true;
                             }
                             if (IntakeContext.Instance.CaseMode != "R")
                             {

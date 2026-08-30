@@ -64,7 +64,6 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
         private bool _isbackToSummaryOrPrevious; // Back-to-summary or Previous button clicked flag
         private List<int> _newIndivRequested;
         private bool _isShowAGReviewDuePopup;
-        private bool _showMaNewPersonLookbackInfo;
 
         /// <summary>
         /// Occurs on Page Load
@@ -93,7 +92,12 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                 EnableProgramDetails();
                 ServicesTracingHub.TraceWriter.WriteLine("ProgramofAssistance.Page_Load.EnableProgramDetails - End");
                 fvTechnical_ProgramDetail.FindControl("cbCashRequester").Focus();
-                if (TechnicalSessionContext.Instance.IsShowAGReviewPopUp)
+                if (TechnicalSessionContext.Instance.IsShowMaLookbackPopUp)
+                {
+                    TechnicalSessionContext.Instance.IsShowMaLookbackPopUp = false;
+                    ShowErrPopupInformation(ErrorMessages.CCMTBD9);
+                }
+                else if (TechnicalSessionContext.Instance.IsShowAGReviewPopUp)
                 {
                     TechnicalSessionContext.Instance.IsShowAGReviewPopUp = false;
                     ShowErrPopupInformation(ErrorMessages.WWPOA1);
@@ -774,9 +778,9 @@ namespace Dhss.Assist.WorkerWeb.Web.Intake.ApplicationEntry.Technical
                     SetPageComplete(IntakeConstants.PROGRAM_OF_ASSISTANCE_AE, true, true);
                 }
                 CleanUpSessionVariables();
-                if (_showMaNewPersonLookbackInfo)
+                if (TechnicalSessionContext.Instance.IsShowMaLookbackPopUp)
                 {
-                    _showMaNewPersonLookbackInfo = false;
+                    TechnicalSessionContext.Instance.IsShowMaLookbackPopUp = false;
                     ShowInformationPopUp(ErrorMessages.CCMTBD9);
                 }
                 else if (TechnicalSessionContext.Instance.IsShowAGReviewPopUp)
