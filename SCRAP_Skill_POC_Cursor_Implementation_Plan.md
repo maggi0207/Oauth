@@ -1,1080 +1,577 @@
-# SCRAP Skill POC --- Cursor Implementation Plan
-
-## 1. Purpose
-
-Build the first POC for evolving the existing SSC Planning / Runtime
-SCRAP Agent toward the skill-based architecture discussed in the
-architecture meeting.
-
-**Critical scope decision:** do not rebuild the existing Runtime SCRAP
-Agent. Reuse its MCP integrations, retrieval, routing, configuration,
-tracing, and tests wherever possible.
-
-The POC adds a **SCRAP Analysis Skill** around the existing capability
-and demonstrates:
-
--   skill instructions and business context
--   LLM-based capability/intent understanding
--   orchestration of existing MCP/runtime capabilities
--   LLM analysis of retrieved data
--   a structured response contract for future dynamic UI
--   a small end-to-end demo
-
-The meeting distinguishes a Skill from a low-level MCP tool: a Skill is
-a higher-level, orchestrated business capability that can use domain
-knowledge and multiple tools.
-
-------------------------------------------------------------------------
-
-## 2. Target Architecture
-
-``` text
-                           USER
-                             |
-                             v
-                    +------------------+
-                    |     My Agent     |
-                    |  Conversational  |
-                    |       UI         |
-                    +--------+---------+
-                             |
-                             v
-                    +------------------+
-                    |    Super Agent    |
-                    | Intent / Routing |
-                    +--------+---------+
-                             |
-                             v
-                    +------------------+
-                    | Planning Agent   |
-                    | Planning Domain  |
-                    +--------+---------+
-                             |
-                             v
-                    +------------------+
-                    |   SCRAP Skill    |  <-- POC focus
-                    +--------+---------+
-                             |
-             +---------------+---------------+
-             |               |               |
-             v               v               v
-       Existing MCP     Existing MCP    Existing MCP
-          Tool #1          Tool #2          Tool #3
-          Search          Inventory        Planning
-             |               |               |
-             +---------------+---------------+
-                             |
-                             v
-                    Enterprise Data
-                             |
-                             v
-                    +------------------+
-                    |   LLM Analysis   |
-                    | Aggregate/Analyze|
-                    | Generate insight |
-                    +--------+---------+
-                             |
-                             v
-                    +------------------+
-                    | Skill Response   |
-                    |    UI Schema     |
-                    +--------+---------+
-                             |
-              +--------------+--------------+
-              |              |              |
-              v              v              v
-            Text           Table          Chart
-                         + Insights
-```
-
-------------------------------------------------------------------------
-
-## 3. Current State vs POC
-
-### Current Runtime SCRAP Agent
-
-``` text
-User Query
-    |
-Keyword / Intent Matching
-    |
-Corresponding MCP
-    |
-Business Data
-    |
-Response
-```
-
-### POC
-
-``` text
-User Query
-    |
-    v
-SCRAP Skill
-    |
-    +--> Skill instructions
-    +--> Business rules
-    +--> LLM reasoning
-    +--> Tool orchestration
-    |
-    v
-Existing Runtime / MCP capabilities
-    |
-    v
-Retrieved data
-    |
-    v
-LLM analysis
-    |
-    v
-Structured Skill Response
-    |
-    +--> Text
-    +--> Table
-    +--> Chart
-    +--> Insights
-```
-
-The main change is the introduction of the Skill layer. Existing MCP
-implementations should remain reusable.
-
-------------------------------------------------------------------------
-
-## 4. POC Objective
-
-Create one skill:
-
-`SCRAP Analysis Skill`
-
-Support a small representative set of questions:
-
-### Query A
-
-> What SCRAP items are pending?
-
-Expected flow:
-
-``` text
-User
- -> SCRAP Skill
- -> Existing SCRAP retrieval capability
- -> Result
- -> Table + summary
-```
-
-### Query B
-
-> Show SCRAP trend by region.
-
-Expected flow:
-
-``` text
-User
- -> SCRAP Skill
- -> Existing SCRAP data
- -> Aggregate / analyze
- -> Chart/table response
-```
-
-### Query C
+We already have an existing high-level architecture document:
 
-> Why are SCRAP items increasing?
+HCA Credentialing 2.0 — Architecture & Project Guide.md
 
-Expected flow:
+DO NOT recreate that architecture documentation.
 
-``` text
-User
- -> SCRAP Skill
- -> Determine required information
- -> Existing SCRAP capability
- -> Optional inventory/planning capability
- -> LLM analysis
- -> Insights + supporting data
-```
+That document already explains:
+- overall HCP architecture
+- solution/project structure
+- Client/Server
+- PAF API
+- CACTUS API
+- Packet API
+- Azure Functions
+- Service Bus
+- databases
+- authentication
+- shared libraries
+- high-level data flows
 
-Use only capabilities that actually exist in the repository. Do not
-invent business data or pretend a missing MCP exists.
-
-------------------------------------------------------------------------
-
-## 5. What NOT to Build in POC-1
-
-Do not implement yet:
-
--   full enterprise Super Agent
--   full My Agent integration
--   A2A
--   multiple domain agents
--   large skill catalog
--   20+ skills
--   complete dynamic UI framework
--   replacement of existing MCP tools
--   production data services
--   complex graph execution engine
--   speculative business rules
--   broad refactoring of the existing runtime
-
-The goal is to prove the Skill concept.
-
-------------------------------------------------------------------------
+Your task is different.
 
-# 6. Skill Contract
+========================================================
+TASK
+========================================================
 
-Create a machine-readable definition similar to:
+Perform a READ-ONLY, deep code-level investigation of the
+existing HCP repository specifically for the future
+"ADD NPP to Facility" implementation.
 
-``` yaml
-name: scrap_analysis
-version: "0.1"
-description: >
-  Analyze SCRAP information and provide business-oriented
-  answers, summaries, tables, and insights.
-
-when_to_use:
-  - pending SCRAP questions
-  - SCRAP trend questions
-  - SCRAP regional analysis
-  - questions asking why SCRAP is increasing/decreasing
-
-inputs:
-  - user_query
+Create ONE new Markdown file:
 
-capabilities:
-  - retrieve_scrap_data
-  - analyze_scrap_data
-  - summarize_scrap_data
-  - generate_table
-  - generate_chart
-
-tools:
-  - existing_scrap_search
-  - existing_inventory
-  - existing_planning
-
-output_formats:
-  - text
-  - table
-  - chart
-  - insight
-
-requires_llm_reasoning: true
-```
-
-**Important:** actual tool names must be discovered from the repository.
-Never invent names in implementation.
+HCP_ADD_NPP_CODE_LEVEL_ARCHITECTURE.md
 
-------------------------------------------------------------------------
+DO NOT modify application source code.
 
-# 7. Skill Instructions
+DO NOT implement ADD NPP.
 
-Create a human-readable instruction file, for example:
-
-`skills/scrap_analysis/instructions.md`
-
-Suggested content:
-
-``` markdown
-# SCRAP Analysis Skill
-
-## Purpose
+DO NOT refactor.
 
-Provide business-oriented analysis of SCRAP information.
+DO NOT change tests.
 
-## When to use
+DO NOT create new architecture.
 
-Use this skill when the user asks about:
-- pending SCRAP
-- SCRAP trends
-- regional SCRAP
-- reasons for SCRAP changes
-- SCRAP-related analysis
-
-## Execution principles
-
-1. Understand the user question.
-2. Determine required information.
-3. Reuse existing runtime/MCP capabilities.
-4. Retrieve factual data.
-5. Do not invent unavailable data.
-6. Analyze retrieved information.
-7. Identify patterns only when supported by data.
-8. Return a concise business explanation.
-9. Select an appropriate output format.
+The purpose of this document is to tell another senior engineer:
 
-## Output
+"Here are the EXACT existing HCP files, classes, components,
+methods, services, APIs and tests that ADD NPP should reuse
+or extend."
 
-Prefer:
-- summary for simple questions
-- table for record-level data
-- chart for trends/breakdowns
-- insights for analytical questions
-```
+========================================================
+IMPORTANT
+========================================================
 
-Do not invent domain rules. Existing implementation/documentation must
-be the source for actual SCRAP business rules.
+Use the existing high-level architecture document as the
+starting map.
 
-------------------------------------------------------------------------
+Do NOT repeat its project-level explanations unless needed
+to explain a code-level dependency.
 
-# 8. Implementation Steps
+Go deeper into the actual repository.
 
-## Step 1 --- Repository discovery
+Every repository claim must be verified from actual source code.
 
-Before changing code:
+Never invent:
+- file paths
+- classes
+- components
+- methods
+- APIs
+- services
+- database objects
+- configuration
+- relationships
 
-1.  Identify the Runtime SCRAP Agent entry point.
-2.  Identify current keyword/intent matching.
-3.  Identify MCP client/service abstractions.
-4.  Identify all relevant SCRAP MCP tools.
-5.  Identify inventory/planning MCP capabilities.
-6.  Identify LLM/Circuit integration.
-7.  Identify request/response models.
-8.  Identify configuration/environment conventions.
-9.  Identify feature flags.
-10. Identify logging/tracing.
-11. Identify existing tests.
-12. Identify the safest insertion point for the Skill layer.
-
-Create:
-
-`docs/scrap-skill-poc-discovery.md`
+If something cannot be confirmed, put it under:
 
-Include:
+"Repository Evidence Gap"
 
-``` text
-Current request flow
-Current routing
-Relevant modules
-Existing MCP capabilities
-Existing LLM capabilities
-Existing response contract
-Recommended Skill insertion point
-Files that should not be modified
-Risks / assumptions
-```
-
-**Stop after discovery and report findings. Do not implement yet.**
-
-------------------------------------------------------------------------
-
-## Step 2 --- Define the Skill
-
-Add `SCRAP Analysis Skill` as a first-class capability.
-
-Preferred structure, adapted to the existing repository:
-
-``` text
-skills/
-  scrap_analysis/
-    skill.yaml
-    instructions.md
-    orchestrator.py
-    analyzer.py
-    schemas.py
-```
-
-If an equivalent abstraction already exists, reuse it instead of
-creating a duplicate.
+========================================================
+1. BEGIN PAF — CODE LEVEL
+========================================================
 
-------------------------------------------------------------------------
+Trace the existing Begin PAF flow from the MSP Dashboard.
 
-## Step 3 --- Skill selection
+Document the actual call chain.
 
-For POC, support one skill:
+Example structure:
 
-``` text
-User Query
-    |
-    v
-Skill Selector
-    |
-    +--> SCRAP query -> SCRAP Analysis Skill
-    |
-    +--> unsupported -> existing safe behavior
-```
+MSP Dashboard
+→ Razor component
+→ button/event handler
+→ state/service
+→ HTTP client
+→ API endpoint
+→ backend controller
+→ application/service layer
+→ database/downstream
 
-Reuse existing intent/LLM classification if available.
+For every step document:
 
-Do not create a second LLM unnecessarily.
+| Layer | Exact File | Class/Component | Method | Purpose |
+|------|------------|-----------------|--------|---------|
 
-Keep the selector extensible for future skills.
+Also identify:
+- route
+- authorization
+- tests
+- navigation
+- state management
 
-------------------------------------------------------------------------
+========================================================
+2. ENFORCE NPI SEARCH — CODE LEVEL
+========================================================
 
-## Step 4 --- LLM reasoning
-
-Use the existing LLM/Circuit integration if present.
-
-The model should help determine:
-
-``` text
-user query
-   |
-   +--> intent
-   +--> required capability
-   +--> filters
-   +--> required data/tools
-   +--> output format
-```
-
-Example internal representation:
-
-``` json
-{
-  "skill": "scrap_analysis",
-  "intent": "regional_trend",
-  "filters": {
-    "region": "Texas"
-  },
-  "required_capabilities": [
-    "retrieve_scrap_data"
-  ],
-  "output_format": "chart"
-}
-```
-
-The LLM must not execute arbitrary code. Tool calls go through
-controlled existing interfaces.
-
-------------------------------------------------------------------------
-
-## Step 5 --- Tool orchestration
-
-The Skill should use existing MCP/runtime capabilities.
-
-Example:
-
-``` text
-SCRAP Skill
-    |
-    +--> SCRAP Search
-    |
-    +--> Inventory
-    |
-    +--> Planning
-    |
-    v
-Combined factual context
-    |
-    v
-LLM Analysis
-```
-
-Do not call every tool for every query.
-
-Example:
-
-``` text
-"What are pending SCRAP items?"
-    -> SCRAP search may be enough
-
-"Why are pending SCRAP items increasing?"
-    -> SCRAP + inventory/planning may be required
-```
-
-Record which tools were selected.
-
-------------------------------------------------------------------------
-
-## Step 6 --- Data validation
-
-Before analysis:
-
--   preserve source data
--   detect tool errors
--   detect empty results
--   preserve provenance/metadata when available
--   do not silently replace missing values
--   prevent the LLM from manufacturing facts
-
-If required data is unavailable, return a clear limitation.
-
-------------------------------------------------------------------------
-
-## Step 7 --- LLM analysis
-
-Provide:
-
-``` text
-Original user question
-+
-Skill instructions
-+
-Applicable business rules
-+
-Retrieved tool results
-```
-
-Generate:
-
-``` text
-summary
-key findings
-supporting data
-suggested output format
-```
-
-Do not turn analysis into unsupported business recommendations.
-
-------------------------------------------------------------------------
-
-## Step 8 --- Structured response
-
-Add or extend a response model similar to:
-
-``` json
-{
-  "skill": "scrap_analysis",
-  "summary": "SCRAP analysis completed.",
-  "insights": [
-    {
-      "text": "..."
-    }
-  ],
-  "table": {
-    "columns": [],
-    "rows": []
-  },
-  "visualizations": [
-    {
-      "type": "bar_chart",
-      "title": "SCRAP by Region",
-      "x_field": "region",
-      "y_field": "count",
-      "data": []
-    }
-  ],
-  "metadata": {
-    "tools_used": []
-  }
-}
-```
-
-Reuse an existing response contract if one exists.
-
-The response should be suitable for a future My Agent UI to render
-text/table/chart components.
-
-------------------------------------------------------------------------
-
-## Step 9 --- Backward compatibility
-
-Existing behavior must continue:
-
-``` text
-Existing client
-    |
-    v
-Existing Runtime SCRAP Agent
-    |
-    v
-Existing MCP
-```
-
-New POC path:
-
-``` text
-New skill request
-    |
-    v
-SCRAP Skill
-    |
-    v
-Existing runtime/MCP capability
-```
-
-If the repository already has a feature-flag mechanism, use it. If
-appropriate, introduce:
-
-`SCRAP_SKILL_POC_ENABLED=true`
-
-Do not create a new configuration framework if one already exists.
-
-------------------------------------------------------------------------
-
-## Step 10 --- Observability
-
-Reuse existing logging/tracing.
-
-Capture where appropriate:
-
-``` text
-request
-  |
-  +-- selected skill
-  |
-  +-- selected intent
-  |
-  +-- tools selected
-  |
-  +-- tool execution
-  |
-  +-- analysis
-  |
-  +-- response type
-```
-
-Do not log secrets or unnecessary sensitive payloads.
-
-If LangSmith/tracing already exists, extend the existing trace.
-
-------------------------------------------------------------------------
-
-## Step 11 --- Tests
-
-Unit tests:
-
--   skill loading
--   skill selection
--   intent handling
--   tool selection
--   multi-tool orchestration
--   empty results
--   tool failure
--   LLM output validation
--   response schema
--   unsupported query
-
-Representative cases:
-
-``` text
-1. "What SCRAP items are pending?"
-   -> scrap_analysis
-   -> pending_scrap
-   -> SCRAP retrieval
-
-2. "Show SCRAP trend by region"
-   -> scrap_analysis
-   -> regional_trend
-   -> SCRAP retrieval
-   -> chart response
-
-3. "Why are SCRAP items increasing?"
-   -> scrap_analysis
-   -> analytical intent
-   -> required tools
-   -> analysis response
-
-4. Unsupported question
-   -> no incorrect skill selection
-
-5. MCP failure
-   -> controlled error
-   -> no fabricated result
-```
-
-Run the existing regression suite.
-
-------------------------------------------------------------------------
-
-# 9. Demo Plan
-
-Create:
-
-`docs/scrap-skill-poc-demo.md`
-
-Demo 1:
-
-> What SCRAP items are pending?
-
-Show:
-
-``` text
-Query
- -> Skill
- -> Existing SCRAP capability
- -> Table
-```
-
-Demo 2:
-
-> Show SCRAP trend by region.
-
-Show:
-
-``` text
-Query
- -> Skill
- -> Existing data
- -> Analysis
- -> Chart + insight
-```
-
-Demo 3:
-
-> Why is SCRAP increasing?
-
-Show:
-
-``` text
-Query
- -> Skill
- -> SCRAP data
- -> Inventory/planning data if available
- -> LLM analysis
- -> Business insight
-```
-
-Demo 3 is especially useful for proving that a Skill is more than an MCP
-wrapper.
-
-------------------------------------------------------------------------
-
-# 10. Future Architecture
-
-After the POC:
-
-``` text
-                         My Agent
-                            |
-                            v
-                       Super Agent
-                            |
-             +--------------+--------------+
-             |              |              |
-             v              v              v
-       Planning Agent   Logistics Agent   CDM Agent
-             |
-      +------+------+
-      |             |
-      v             v
- SCRAP Skill   Other Skills
-      |
-      v
-Existing Runtime / MCP
-```
-
-Future work may include multiple skills, formal Planning Agent, Super
-Agent, A2A, My Agent integration, dynamic UI rendering, skill
-discovery/catalog, skill packaging, and hierarchical agents.
-
-These are **not POC-1 requirements**.
-
-------------------------------------------------------------------------
-
-# 11. Cursor Master Prompt
-
-Copy the following into Cursor at the root of the existing Runtime SCRAP
-Agent repository.
-
-``` text
-You are working in an existing enterprise SSC Planning / Runtime SCRAP Agent repository.
-
-We need to build a small POC for a skill-based SCRAP capability.
-
-CRITICAL:
-DO NOT rebuild the existing Runtime SCRAP Agent.
-DO NOT replace existing MCP tools.
-DO NOT create a parallel SCRAP agent.
-
-First inspect the repository and understand the actual implementation.
-
-The existing Runtime SCRAP Agent, MCP integrations, routing, data retrieval, configuration, tracing, and tests are reusable assets.
-
-The purpose of this POC is to introduce a SCRAP Analysis Skill above the existing capability.
-
-TARGET:
-
-User
-  |
-  v
-SCRAP Skill
-  |
-  +-- Skill instructions
-  +-- Business rules
-  +-- LLM reasoning
-  +-- Tool orchestration
-  |
-  v
-Existing Runtime SCRAP Agent / MCP capabilities
-  |
-  v
-Enterprise data
-  |
-  v
-LLM analysis
-  |
-  v
-Structured Skill Response
-  |
-  +-- Text
-  +-- Table
-  +-- Chart
-  +-- Insights
-
-CURRENT IMPLEMENTATION ASSUMPTION:
-
-User Query
-  |
-Keyword / intent matching
-  |
-Corresponding MCP
-  |
-Data
-  |
-Response
-
-Do not assume this is exactly how the repository works. Verify it.
-
-PHASE 1 — DISCOVERY ONLY
-
-Before editing code:
-
-1. Identify Runtime SCRAP Agent entry point.
-2. Identify current keyword/intent routing.
-3. Identify MCP client/service abstractions.
-4. Identify relevant SCRAP MCP tools.
-5. Identify inventory/planning MCP capabilities.
-6. Identify LLM/Circuit integration.
-7. Identify request/response models.
-8. Identify configuration and feature flags.
-9. Identify logging/tracing.
-10. Identify tests.
-11. Identify the safest insertion point for a Skill.
-
-Create:
-docs/scrap-skill-poc-discovery.md
+Find and trace the existing Enforce NPI Search implementation.
 
 Document:
-- current flow
-- relevant modules
-- MCP capabilities
-- LLM capabilities
-- response contract
-- recommended Skill insertion point
-- files that should not be modified
-- risks and assumptions
 
-STOP after Phase 1 and report findings. Do not implement yet.
+- exact Razor/component files
+- models
+- validators
+- handlers
+- services
+- HTTP clients
+- API endpoints
+- backend services
+- repository/data access
+- duplicate practitioner logic
+- error handling
+- tests
 
-PHASE 2 — SKILL CONTRACT
+Create the exact call chain.
 
-After discovery, create or reuse the repository's existing capability abstraction.
+========================================================
+3. PRACTITIONER SEARCH — CODE LEVEL
+========================================================
 
-Define:
-SCRAP Analysis Skill
+Trace actual implementation.
 
-The Skill must describe:
-- name
-- description
-- when to use
-- inputs
-- capabilities
-- available tools
-- execution instructions
-- output formats
-- LLM reasoning requirement
+Identify:
 
-If an existing skill abstraction exists, reuse it.
+- UI
+- request model
+- response model
+- validator
+- HTTP client
+- API controller
+- service
+- repository
+- CACTUS calls
+- duplicate detection
+- result handling
+- tests
 
-PHASE 3 — SKILL SELECTION
+Document exact files and methods.
 
-For the POC, support one skill:
+========================================================
+4. ADD NEW PRACTITIONER — CODE LEVEL
+========================================================
 
-SCRAP-related query -> SCRAP Analysis Skill
+Trace the complete existing Add New Practitioner workflow.
 
-Unsupported query -> existing safe behavior.
+Focus on:
 
-Reuse existing intent/LLM classification if available.
+- entry point
+- component
+- state/model
+- PAF creation
+- practitioner creation
+- demographics
+- address
+- specialty
+- facility
+- tasks
+- validation
+- CACTUS
+- authorization
+- tests
 
-Do not create a second LLM unnecessarily.
+For every major step provide exact code locations.
 
-PHASE 4 — LLM REASONING
+========================================================
+5. ADD PRACTITIONER TO FACILITY — MOST IMPORTANT
+========================================================
 
-Use the existing LLM/Circuit integration.
+Perform the deepest investigation here.
 
-The LLM should determine:
-- intent
-- required capability
-- filters
-- required tools/data
-- output format
+This is the primary existing implementation pattern for
+ADD NPP.
 
-The LLM must not execute arbitrary code.
+Trace the complete workflow:
 
-Tool calls must use existing controlled interfaces.
+Search
+→ Practitioner selection
+→ Add Practitioner to Facility
+→ PAF creation
+→ PAF type
+→ PAF action
+→ PAF tasks
+→ Practitioner information
+→ Demographics
+→ Address
+→ Specialty
+→ Facility
+→ License
+→ PSV if applicable
+→ Submit
+→ Processing
+→ CACTUS
+→ History
+→ PDF
+→ Audit
 
-PHASE 5 — TOOL ORCHESTRATION
+For every stage identify:
 
-The Skill must reuse existing MCP/runtime capabilities.
+- exact file
+- component/class
+- method
+- model
+- API
+- service
+- database access
+- validation
+- tests
 
-Do not invent MCP tools.
+Clearly mark:
 
-For simple pending-SCRAP queries, use only required capability.
+DIRECTLY REUSABLE
 
-For analytical questions, use multiple existing capabilities when they are actually available.
+EXTENDABLE
 
-Record tools selected/executed.
+NOT REUSABLE
 
-PHASE 6 — ANALYSIS
+UNKNOWN
 
-Pass to the LLM:
-- original user query
-- skill instructions
-- applicable existing business rules
-- retrieved tool results
+Do not make an ADD NPP design yet.
 
-Generate:
-- summary
-- key findings
-- supporting data
-- output format
+========================================================
+6. PAF CREATION ARCHITECTURE
+========================================================
 
-Never fabricate business data.
+Trace the actual code responsible for:
 
-PHASE 7 — STRUCTURED RESPONSE
+- creating PAF
+- PAF type
+- PAF actions
+- PAF tasks
+- required/optional tasks
+- task completion
+- Review & Submit
+- submission
+- status changes
+- history
+- PDF
+- attachments
 
-Create or reuse a response model that can represent:
-- summary
-- insights
-- table
-- visualization
-- metadata/tools used
+Identify the extension points used by existing PAF types.
 
-It must be suitable for a future My Agent UI.
+========================================================
+7. PAF TASK IMPLEMENTATION
+========================================================
 
-Do not create duplicate response contracts.
+Find exactly how tasks are represented and rendered.
 
-PHASE 8 — BACKWARD COMPATIBILITY
+Document:
 
-Existing Runtime SCRAP Agent behavior must continue to work.
+- task model
+- task type
+- task registration
+- task component
+- task state
+- required flag
+- completion
+- persistence
+- validation
+- Review & Submit blocking
+- tests
 
-If the repository already has feature flags, use them.
+========================================================
+8. PRACTITIONER INFORMATION CARDS
+========================================================
 
-If appropriate:
-SCRAP_SKILL_POC_ENABLED=true
+Trace actual code for:
 
-Do not introduce a new configuration framework.
+- Add New Practitioner card
+- Existing Practitioner card
+- Demographics
+- Address
+- Specialty
+- Facility-related cards
 
-PHASE 9 — TESTING
+Identify shared components and reusable services.
 
-Add tests for:
-- skill loading
-- skill selection
-- intent
-- tool selection
-- multi-tool orchestration
-- empty results
-- tool failure
-- LLM output validation
-- response schema
-- unsupported queries
+========================================================
+9. LICENSE / PSV ARCHITECTURE
+========================================================
 
-Run all existing regression tests.
+Trace existing implementation for:
 
-PHASE 10 — DOCUMENTATION
+- practitioner licenses
+- license selection
+- license creation
+- license validation
+- license PSV
+- document upload
+- attachment processing
+- sanctions PSV
+- NPI PSV
+
+Identify:
+
+UI
+→ API
+→ service
+→ model
+→ database
+→ document storage
+→ audit
+
+Do not assume ADD NPP uses the same behavior.
+
+Only document existing implementation.
+
+========================================================
+10. AUTO ACCEPTANCE
+========================================================
+
+Find the actual code implementing existing auto-acceptance.
+
+Document:
+
+- trigger
+- service
+- validation
+- decision logic
+- status transition
+- CACTUS update
+- queue/event
+- history
+- audit
+- tests
+
+========================================================
+11. CPC / MANUAL PROCESSING
+========================================================
+
+Trace existing CPC processing.
+
+Document:
+
+- routing
+- queue
+- dashboard
+- review
+- acceptance
+- return
+- status
+- downstream processing
+- tests
+
+========================================================
+12. CVI
+========================================================
+
+Trace existing CVI creation.
+
+Document:
+
+- trigger
+- service
+- model
+- API
+- database
+- status
+- notes
+- due date
+- attachment
+- completion
+- tests
+
+Only document existing implementation.
+
+========================================================
+13. CACTUS
+========================================================
+
+Trace the exact HCP code path used to update CACTUS for:
+
+- practitioner
+- entity/facility
+- address
+- specialty
+- PPI
+- license
+- NPI
+- sanctions
+- images/documents
+
+Document exact:
+
+HCP code
+→ API
+→ service
+→ CACTUS API
+→ database/repository
+
+Identify reusable services.
+
+========================================================
+14. PDF / HISTORY / AUDIT
+========================================================
+
+Trace actual code for:
+
+- PAF PDF generation
+- PAF history
+- attachments
+- Provider Record
+- audit
+- image audit
+
+Identify exact files and methods.
+
+========================================================
+15. AUTHORIZATION
+========================================================
+
+Trace actual authorization code relevant to:
+
+- MSP
+- CPC
+- PAF
+- Begin PAF
+- dashboard
+- APIs
+
+Document:
+
+- roles
+- policies
+- attributes
+- route guards
+- backend authorization
+- tests
+
+========================================================
+16. TEST MAP
+========================================================
+
+Find existing tests for:
+
+- Begin PAF
+- NPI Search
+- Add New Practitioner
+- Add Practitioner to Facility
+- PAF
+- PAF Tasks
+- License
+- PSV
+- CACTUS
+- Auto Acceptance
+- CPC
+- CVI
+- PDF
+- Authorization
+
+Use exact test file paths.
+
+For each test area explain what behavior is already protected.
+
+========================================================
+17. CODE-LEVEL DEPENDENCY MAP
+========================================================
+
+Create a table:
+
+| Feature | UI | Client | API | Service | Repository | DB/External | Tests |
+|--------|----|--------|-----|---------|------------|-------------|-------|
+
+Populate only with verified repository information.
+
+========================================================
+18. ADD NPP REUSE MAP
+========================================================
+
+DO NOT implement anything.
+
+Instead, identify existing code that is likely to be reused.
 
 Create:
-docs/scrap-skill-poc-demo.md
 
-Document these demos:
+| ADD NPP Requirement Area | Existing Code | Reuse Type | Evidence |
+|---|---|---|---|
+| Search | | Direct reuse / Extend | |
+| Begin NPP PAF | | Extend | |
+| PAF Action | | Extend | |
+| PAF Tasks | | Extend | |
+| Add New Practitioner | | Reuse / Extend | |
+| Existing Practitioner | | Reuse / Extend | |
+| Demographics | | | |
+| Address | | | |
+| Specialty | | | |
+| License | | | |
+| PSV | | | |
+| Auto Accept | | | |
+| CPC | | | |
+| CVI | | | |
+| CACTUS | | | |
+| PDF | | | |
+| Audit | | | |
 
-1. What SCRAP items are pending?
-2. Show SCRAP trend by region.
-3. Why are SCRAP items increasing?
+IMPORTANT:
 
-For each show:
-Query -> Skill -> Tools -> Data -> LLM analysis -> Response
+This is NOT a design decision.
 
-DEFINITION OF DONE:
+It is a repository evidence map.
 
-- Existing Runtime SCRAP Agent still works.
-- Existing MCP tools still work.
-- SCRAP Analysis Skill exists as a first-class capability.
-- At least 2–3 representative queries work.
-- Existing runtime/MCP capabilities are reused.
-- At least one query demonstrates LLM-based analysis.
-- At least one response supports table/chart/insight representation.
-- MCP/tool failures are handled safely.
-- No business data is fabricated.
-- Tests pass.
-- Documentation is complete.
+========================================================
+19. EXACT FILE INDEX
+========================================================
 
-ARCHITECTURAL RULES:
+Create a consolidated index:
 
-1. Reuse before rebuilding.
-2. Skill is a business capability, not an MCP wrapper.
-3. MCP is a low-level operation.
-4. Skill owns orchestration.
-5. LLM reasons over user intent and retrieved context.
-6. Tools remain controlled.
-7. Preserve backward compatibility.
-8. Keep POC small.
-9. Do not implement Super Agent yet.
-10. Do not implement My Agent integration yet.
-11. Do not implement A2A yet.
-12. Do not perform broad refactoring.
-13. Do not invent business rules or data.
-14. Adapt to the actual repository instead of blindly following a proposed folder structure.
+| # | Area | File Path | Type | Class/Component | Important Methods |
+|---|------|-----------|------|-----------------|------------------|
 
-EXECUTION DISCIPLINE:
+Only verified files.
 
-Work in small phases.
+========================================================
+20. REPOSITORY EVIDENCE GAPS
+========================================================
 
-After every phase:
-- run relevant tests
-- list changed files
-- explain why each file changed
-- list assumptions
-- list anything blocked by missing repository capabilities
+List everything that could not be confirmed.
 
-START WITH PHASE 1 DISCOVERY ONLY.
-```
+For each:
 
-------------------------------------------------------------------------
+Unknown:
+Why it matters:
+Suggested next file/search:
+Impact on ADD NPP analysis:
 
-# 12. Success Criteria
+========================================================
+21. EXECUTIVE SUMMARY
+========================================================
 
-The POC should let you demonstrate this transformation:
+At the end provide:
 
-``` text
-TODAY
+### Existing Architecture We Can Reuse
 
-User
-  ↓
-Keyword / Intent
-  ↓
-MCP
-  ↓
-Result
+### Most Important Add Practitioner to Facility Extension Points
 
+### Most Important PAF Extension Points
 
-POC
+### Most Important CACTUS Integration Points
 
-User
-  ↓
-SCRAP Skill
-  ↓
-LLM reasoning
-  ↓
-Existing MCP / Runtime
-  ↓
-Data
-  ↓
-LLM analysis
-  ↓
-Insight + Table/Chart
+### Most Important Risks
 
+### Repository Evidence Gaps
 
-FUTURE
+### Recommended Next Repository Investigation
 
-My Agent
-  ↓
-Super Agent
-  ↓
-Planning Agent
-  ↓
-SCRAP Skill
-  ↓
-Existing Runtime / MCP
-  ↓
-Data
-  ↓
-LLM
-  ↓
-Dynamic UI
-```
+Do NOT generate the ADD NPP implementation plan.
 
-The architectural goal is therefore **not to replace your existing SCRAP
-Agent**. It is to demonstrate how that existing capability can be
-wrapped/evolved into a reusable **SCRAP Skill** and later become part of
-the Planning Agent in the larger My Agent/Super Agent ecosystem.
+Do NOT generate Copilot implementation prompts.
+
+This document is ONLY the code-level architecture discovery artifact.
+
+Before completing the document:
+
+1. Verify referenced files exist.
+2. Verify class names.
+3. Verify method names.
+4. Avoid duplicate high-level architecture already covered by
+   HCA Credentialing 2.0 — Architecture & Project Guide.md.
+5. Clearly distinguish verified code from inference.
+6. Do not modify application code.
