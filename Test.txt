@@ -1,0 +1,532 @@
+Integrate RMA Skills and MCP Tools into the New Multi-Agent Architecture
+
+We now need to implement the next phase of the new architecture.
+
+Architecture Context
+
+We have two existing repositories:
+
+* Service Plan Main Agent: ssc-service-plan-agent-rt
+* RMA Agent: existing RMA repository
+
+The target architecture is:
+
+User
+ │
+ ▼
+Service Plan Main Agent
+ │
+ │ LangGraph routing
+ ▼
+RMA Sub-Agent
+ │
+ ├── RMA Skills (.md)
+ │
+ ├── Skill-specific instructions
+ │
+ └── Corresponding MCP Tool
+ │
+ ▼
+MCP Server
+ │
+ ▼
+RMA backend/system
+
+The Service Plan Agent is the Main Agent / Orchestrator.
+
+RMA should now operate as a sub-agent inside the Service Plan LangGraph workflow.
+
+⸻
+
+Objective
+
+Integrate the existing RMA implementation into ssc-service-plan-agent-rt.
+
+The RMA sub-agent must:
+
+1. Use the existing RMA skill .md files.
+2. Determine which RMA skill is applicable to the user request.
+3. Load/use the corresponding skill instructions.
+4. Identify the MCP operation required by that skill.
+5. Invoke the corresponding MCP tool.
+6. Return the MCP result back through the RMA sub-agent.
+7. Pass the result back to the Service Plan Main Agent through LangGraph state.
+8. Allow the Main Agent to generate the final response.
+
+Do not duplicate the existing RMA skill definitions unnecessarily.
+
+⸻
+
+Step 1 — Analyze Existing RMA Skills
+
+First inspect the existing RMA repository and identify all available .md skill files.
+
+For every skill, determine:
+
+Skill Name
+Skill Description
+Trigger / Intent
+Required Parameters
+MCP Tool
+MCP Operation
+Expected Input
+Expected Output
+Dependencies
+
+Create an internal mapping such as:
+
+RMA Skill
+   ↓
+Skill Instructions (.md)
+   ↓
+Intent / Trigger
+   ↓
+MCP Tool
+   ↓
+MCP Operation
+
+Do not assume the mapping.
+
+Derive it from the existing source code, skill files, configuration, and MCP integration.
+
+⸻
+
+Step 2 — MCP Path
+
+The MCP path/tool information will be provided by Bruno.
+
+Use the MCP path supplied by Bruno as the source of truth.
+
+For example, if Bruno provides something conceptually like:
+
+<BRUNO_PROVIDED_MCP_PATH>
+
+use that exact MCP path/tool configuration.
+
+Important
+
+Do NOT:
+
+* invent an MCP path
+* hardcode a guessed MCP endpoint
+* create duplicate MCP tools
+* change the MCP contract without justification
+* assume tool names based only on the skill name
+
+If the MCP path from Bruno is not available in the repository/context, clearly identify it as a required integration input instead of guessing.
+
+⸻
+
+Step 3 — Integrate Skills into the RMA Sub-Agent
+
+Create/refactor the RMA implementation so that the RMA sub-agent follows this flow:
+
+RMA Sub-Agent
+      │
+      ▼
+Identify applicable RMA Skill
+      │
+      ▼
+Load Skill .md instructions
+      │
+      ▼
+Determine required MCP operation
+      │
+      ▼
+Build MCP request
+      │
+      ▼
+Invoke corresponding MCP tool
+      │
+      ▼
+Process MCP response
+      │
+      ▼
+Return structured result
+
+The .md files should remain the source of truth for skill-specific behavior/instructions wherever the existing architecture already follows this approach.
+
+Avoid duplicating the complete skill instructions into Python/TypeScript code.
+
+⸻
+
+Step 4 — LangGraph Integration
+
+The RMA sub-agent must be integrated into the Main Agent’s LangGraph.
+
+Target flow:
+
+                         User Request
+                              │
+                              ▼
+                  ┌──────────────────────┐
+                  │ Service Plan Main     │
+                  │ Agent / Orchestrator  │
+                  └──────────┬───────────┘
+                             │
+                             ▼
+                       Intent / Router
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │   RMA Sub-Agent │
+                    └────────┬────────┘
+                             │
+                             ▼
+                       RMA Skill Node
+                             │
+                             ▼
+                       MCP Tool Node
+                             │
+                             ▼
+                     MCP Server / API
+                             │
+                             ▼
+                       MCP Response
+                             │
+                             ▼
+                    RMA Sub-Agent Result
+                             │
+                             ▼
+                     Main Agent State
+                             │
+                             ▼
+                       Final Response
+
+Each major step should be represented using the existing LangGraph patterns in the project.
+
+⸻
+
+Step 5 — MCP Tool Selection
+
+The RMA sub-agent should not blindly call an MCP tool.
+
+The flow should determine:
+
+User Request
+    ↓
+RMA Intent
+    ↓
+Matching Skill
+    ↓
+Required MCP Operation
+    ↓
+MCP Tool
+
+For example:
+
+User Request
+    ↓
+RMA Skill A
+    ↓
+MCP Operation A
+    ↓
+Bruno MCP Path A
+
+and:
+
+User Request
+    ↓
+RMA Skill B
+    ↓
+MCP Operation B
+    ↓
+Bruno MCP Path B
+
+The implementation must be extensible so that adding a new RMA skill does not require rewriting the Main Agent.
+
+⸻
+
+Step 6 — Keep Main Agent Generic
+
+The Service Plan Main Agent should NOT contain logic such as:
+
+if RMA request:
+    call specific RMA MCP tool
+
+Instead, it should only be responsible for routing to the RMA sub-agent.
+
+Conceptually:
+
+Main Agent
+   │
+   ├── RMA → RMA Sub-Agent
+   ├── Future Agent A → Future Sub-Agent A
+   ├── Future Agent B → Future Sub-Agent B
+   └── ...
+
+RMA-specific skill selection and MCP invocation must remain inside the RMA sub-agent boundary.
+
+⸻
+
+Step 7 — State Management
+
+Review the existing LangGraph state implementation and extend it only where required.
+
+The state should be capable of carrying information such as:
+
+user_request
+intent
+selected_agent
+selected_skill
+skill_context
+mcp_tool
+mcp_input
+mcp_response
+error
+final_response
+
+Follow the existing project’s state model and naming conventions rather than introducing duplicate state objects.
+
+⸻
+
+Step 8 — Error Handling
+
+Implement appropriate handling for:
+
+Skill not found
+
+RMA request
+   ↓
+No matching skill
+   ↓
+Return controlled response
+
+MCP tool unavailable
+
+Skill identified
+   ↓
+MCP unavailable
+   ↓
+Controlled error
+
+MCP execution failure
+
+MCP call
+   ↓
+Failure
+   ↓
+Existing retry/error-handling mechanism
+
+Use the project’s existing retry, logging, tracing, and exception-handling patterns.
+
+Do not introduce a parallel error-handling framework.
+
+⸻
+
+Step 9 — Observability
+
+Preserve and integrate existing:
+
+* LangSmith tracing
+* LangGraph state/checkpointing
+* structured logging
+* request/trace IDs
+* MCP logging
+* error logging
+
+The trace should make it possible to understand:
+
+User Request
+   ↓
+Main Agent
+   ↓
+RMA Route
+   ↓
+RMA Skill
+   ↓
+MCP Tool
+   ↓
+MCP Response
+   ↓
+RMA Result
+   ↓
+Final Response
+
+Do not log sensitive request/response data if the existing project has sanitization rules.
+
+⸻
+
+Step 10 — Follow Existing Coding Patterns
+
+Before implementing anything:
+
+Analyze the existing source code thoroughly.
+
+Follow existing patterns for:
+
+* project structure
+* agent classes
+* LangGraph nodes
+* state management
+* dependency injection
+* configuration
+* MCP clients
+* skill loading
+* prompts
+* logging
+* error handling
+* retries
+* testing
+* environment variables
+* model configuration
+
+Do not introduce a new architectural pattern if an existing project pattern already solves the same problem.
+
+⸻
+
+Step 11 — Configuration
+
+Any MCP path, model, skill location, or runtime configuration that is currently configurable should remain configurable.
+
+Do not hardcode:
+
+MCP URLs
+MCP paths
+model names
+API keys
+environment-specific values
+
+Use the existing configuration mechanism.
+
+The MCP path supplied by Bruno should be integrated through the appropriate configuration mechanism.
+
+⸻
+
+Expected Deliverables
+
+Before modifying code, provide:
+
+1. Existing RMA Skill Inventory
+
+Skill
+Purpose
+Trigger
+MCP Tool
+MCP Path
+Input
+Output
+
+2. Target Architecture
+
+Show:
+
+Main Agent
+   ↓
+RMA Sub-Agent
+   ↓
+RMA Skills
+   ↓
+MCP Tools
+
+3. File-Level Change Plan
+
+Clearly identify:
+
+File
+Change
+Reason
+
+4. LangGraph Changes
+
+Identify:
+
+* new nodes
+* modified nodes
+* state changes
+* routing changes
+* subgraph changes
+
+5. MCP Integration
+
+For every RMA skill:
+
+Skill → MCP Tool → Bruno MCP Path
+
+6. Implementation
+
+After the analysis and plan, implement the changes.
+
+7. Tests
+
+Add/update tests for:
+
+* Main Agent → RMA routing
+* RMA skill selection
+* skill .md loading
+* MCP tool selection
+* MCP invocation
+* successful MCP response
+* MCP failure
+* unknown skill
+* invalid input
+* future extensibility
+
+⸻
+
+Critical Constraints
+
+1. Do not rewrite the existing RMA business logic unnecessarily.
+2. Do not duplicate skill .md content into code unless required by the existing architecture.
+3. Do not guess MCP paths. Use the path provided by Bruno.
+4. Do not put RMA-specific MCP logic inside the Main Agent.
+5. Do not tightly couple the Main Agent to individual RMA skills.
+6. Use LangGraph as the orchestration mechanism.
+7. Keep the RMA implementation modular as a sub-agent/subgraph.
+8. Design the architecture so additional sub-agents can be added later.
+9. Preserve existing RMA functionality.
+10. Follow existing coding patterns before introducing new abstractions.
+
+Final Target
+
+The final architecture should look like:
+
+                    ┌──────────────────────┐
+                    │       USER           │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                 ┌─────────────────────────┐
+                 │ Service Plan Main Agent │
+                 │       Orchestrator      │
+                 └────────────┬────────────┘
+                              │
+                         LangGraph Router
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │      RMA Sub-Agent      │
+                 └────────────┬────────────┘
+                              │
+                       Skill Selection
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │       RMA Skill         │
+                 │        (.md)            │
+                 └────────────┬────────────┘
+                              │
+                       MCP Operation
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │      MCP Tool           │
+                 │   Bruno MCP Path        │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                       MCP Server
+                              │
+                              ▼
+                       RMA Response
+                              │
+                              ▼
+                       RMA Sub-Agent
+                              │
+                              ▼
+                    Main Agent State
+                              │
+                              ▼
+                       Final Response
+
+Start by analyzing the existing RMA .md skills, MCP integrations, and the current ssc-service-plan-agent-rt LangGraph architecture. Do not make assumptions about the MCP mapping or paths.
