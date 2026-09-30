@@ -1,29 +1,47 @@
-The current workspace contains only the FACTS API repository.
-Do not assume that the Formulation Core repository needs
-to be modified.
+We have an existing Jira task, FOREP-2713, implemented
+by another team member.
 
-First, inspect the existing FormulationCoreRepoClient,
-its generated API methods, and the existing ActiveReaction
-implementation.
+This task created the ActiveReactionController,
+DTOs, AutoMapper mappings, and service for the
+FACTS API.
 
-Determine whether the required Active IP search can be
-implemented using the APIs and data already available.
+Our current task is FOREP-2699: Active IP Search.
 
-If an existing Formulation Core endpoint supports the
-required search, reuse it.
+Before implementing anything, inspect the existing
+FOREP-2713 implementation in the current repository.
 
-If FACTS API already has access to all the required data,
-follow the existing FACTS API architecture to implement
-the search.
+Reuse the existing:
+- ActiveReactionController
+- ActiveReactionService
+- DTOs
+- AutoMapper mappings
+- Formulation Core API client
+- Existing API methods
 
-Only if a new Formulation Core API endpoint is genuinely
-required, identify the missing functionality and report
-which changes are needed in that repository.
+Do not recreate existing functionality.
 
-Do not block the FACTS API implementation just because
-the Formulation Core repository is not available.
+Determine whether the existing service and API client
+already provide the data required for Active IP Search.
 
-Complete all possible backend work in the current
-workspace, then build and test the API using Swagger.
+If the existing API supports the required search,
+reuse it.
 
-Do not implement the Angular UI yet.
+If it does not, identify exactly what functionality
+is missing and whether a new Formulation Core
+endpoint is necessary.
+
+Implement only the missing functionality required
+for FOREP-2699.
+
+Follow the existing coding patterns and repository
+instructions.
+
+Complete the backend implementation first.
+Build the API and verify the search endpoint
+through Swagger.
+
+Do not modify the Angular UI.
+
+Before making changes, report which existing
+components can be reused and which files need
+modification. Then proceed with implementation.
