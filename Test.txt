@@ -1,532 +1,620 @@
-Integrate RMA Skills and MCP Tools into the New Multi-Agent Architecture
+# Task: Implement and Test Active IP Search API
+## Project: FACTS Stoller
+## Jira: FOREP-2699
+## Phase: Backend API Only
 
-We now need to implement the next phase of the new architecture.
+# OBJECTIVE
 
-Architecture Context
+Implement the complete Active IP Search backend API,
+following the existing architecture, coding patterns,
+repository instructions, and available project skills.
 
-We have two existing repositories:
+The immediate goal is to:
 
-* Service Plan Main Agent: ssc-service-plan-agent-rt
-* RMA Agent: existing RMA repository
+1. Read the relevant skills and repository instructions.
+2. Inspect the existing code and API architecture.
+3. Implement the required API in Formulation Core.
+4. Integrate it into the FACTS API.
+5. Build and run the backend.
+6. Test the API using Swagger.
+7. Verify the search results and response structure.
 
-The target architecture is:
+Do not implement or modify the Angular UI.
 
-User
- │
- ▼
-Service Plan Main Agent
- │
- │ LangGraph routing
- ▼
-RMA Sub-Agent
- │
- ├── RMA Skills (.md)
- │
- ├── Skill-specific instructions
- │
- └── Corresponding MCP Tool
- │
- ▼
-MCP Server
- │
- ▼
-RMA backend/system
+Do not proceed to frontend integration until the
+backend API has been implemented and verified
+through Swagger.
 
-The Service Plan Agent is the Main Agent / Orchestrator.
+# PHASE 1: READ SKILLS AND INSPECT THE CODEBASE
 
-RMA should now operate as a sub-agent inside the Service Plan LangGraph workflow.
+Before making any changes, read:
 
-⸻
+- Available relevant coding skills
+- AGENTS.md
+- GitHub Copilot instructions
+- Repository README files
+- Existing architecture documentation
+- Coding and testing guidelines
 
-Objective
+Inspect both repositories:
 
-Integrate the existing RMA implementation into ssc-service-plan-agent-rt.
+1. Formulation Core
+2. FACTS API
 
-The RMA sub-agent must:
+Identify and understand the existing implementation of:
 
-1. Use the existing RMA skill .md files.
-2. Determine which RMA skill is applicable to the user request.
-3. Load/use the corresponding skill instructions.
-4. Identify the MCP operation required by that skill.
-5. Invoke the corresponding MCP tool.
-6. Return the MCP result back through the RMA sub-agent.
-7. Pass the result back to the Service Plan Main Agent through LangGraph state.
-8. Allow the Main Agent to generate the final response.
+- ActiveReactionController
+- ActiveReactionService
+- ActiveQueryDto
+- Existing ActiveReaction endpoints
+- FormulationCoreRepoClient
+- Generated API clients
+- Relevant database entities
+- Existing API tests
 
-Do not duplicate the existing RMA skill definitions unnecessarily.
+Study similar search endpoints and follow their
+implementation patterns.
 
-⸻
+Understand how the existing code handles:
 
-Step 1 — Analyze Existing RMA Skills
+- API routing
+- Query parameters
+- Optional filters
+- Database queries
+- Partial matching
+- DTO mapping
+- Dependency injection
+- Exception handling
+- Logging
+- Swagger documentation
 
-First inspect the existing RMA repository and identify all available .md skill files.
+Do not create new architectural patterns when
+an existing implementation can be reused.
 
-For every skill, determine:
+After inspecting the code, provide a brief summary
+of the proposed changes and then proceed with
+implementation.
 
-Skill Name
-Skill Description
-Trigger / Intent
-Required Parameters
-MCP Tool
-MCP Operation
-Expected Input
-Expected Output
-Dependencies
+# PHASE 2: IMPLEMENT FORMULATION CORE SEARCH API
 
-Create an internal mapping such as:
+Implement the search functionality in the
+Formulation Core repository first.
 
-RMA Skill
-   ↓
-Skill Instructions (.md)
-   ↓
-Intent / Trigger
-   ↓
-MCP Tool
-   ↓
-MCP Operation
-
-Do not assume the mapping.
-
-Derive it from the existing source code, skill files, configuration, and MCP integration.
-
-⸻
-
-Step 2 — MCP Path
-
-The MCP path/tool information will be provided by Bruno.
-
-Use the MCP path supplied by Bruno as the source of truth.
-
-For example, if Bruno provides something conceptually like:
-
-<BRUNO_PROVIDED_MCP_PATH>
-
-use that exact MCP path/tool configuration.
-
-Important
-
-Do NOT:
-
-* invent an MCP path
-* hardcode a guessed MCP endpoint
-* create duplicate MCP tools
-* change the MCP contract without justification
-* assume tool names based only on the skill name
-
-If the MCP path from Bruno is not available in the repository/context, clearly identify it as a required integration input instead of guessing.
-
-⸻
-
-Step 3 — Integrate Skills into the RMA Sub-Agent
-
-Create/refactor the RMA implementation so that the RMA sub-agent follows this flow:
-
-RMA Sub-Agent
-      │
-      ▼
-Identify applicable RMA Skill
-      │
-      ▼
-Load Skill .md instructions
-      │
-      ▼
-Determine required MCP operation
-      │
-      ▼
-Build MCP request
-      │
-      ▼
-Invoke corresponding MCP tool
-      │
-      ▼
-Process MCP response
-      │
-      ▼
-Return structured result
-
-The .md files should remain the source of truth for skill-specific behavior/instructions wherever the existing architecture already follows this approach.
-
-Avoid duplicating the complete skill instructions into Python/TypeScript code.
-
-⸻
-
-Step 4 — LangGraph Integration
-
-The RMA sub-agent must be integrated into the Main Agent’s LangGraph.
-
-Target flow:
-
-                         User Request
-                              │
-                              ▼
-                  ┌──────────────────────┐
-                  │ Service Plan Main     │
-                  │ Agent / Orchestrator  │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                       Intent / Router
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │   RMA Sub-Agent │
-                    └────────┬────────┘
-                             │
-                             ▼
-                       RMA Skill Node
-                             │
-                             ▼
-                       MCP Tool Node
-                             │
-                             ▼
-                     MCP Server / API
-                             │
-                             ▼
-                       MCP Response
-                             │
-                             ▼
-                    RMA Sub-Agent Result
-                             │
-                             ▼
-                     Main Agent State
-                             │
-                             ▼
-                       Final Response
-
-Each major step should be represented using the existing LangGraph patterns in the project.
+## 2.1 API Endpoint
 
-⸻
-
-Step 5 — MCP Tool Selection
-
-The RMA sub-agent should not blindly call an MCP tool.
-
-The flow should determine:
+Create the endpoint using the existing routing
+conventions.
 
-User Request
-    ↓
-RMA Intent
-    ↓
-Matching Skill
-    ↓
-Required MCP Operation
-    ↓
-MCP Tool
+HTTP method: GET
 
-For example:
+Endpoint:
 
-User Request
-    ↓
-RMA Skill A
-    ↓
-MCP Operation A
-    ↓
-Bruno MCP Path A
+/api/ActiveReaction/search
 
-and:
+Query parameters:
 
-User Request
-    ↓
-RMA Skill B
-    ↓
-MCP Operation B
-    ↓
-Bruno MCP Path B
+- inputActive (optional)
+- outputActive (optional)
 
-The implementation must be extensible so that adding a new RMA skill does not require rewriting the Main Agent.
+Example requests:
 
-⸻
-
-Step 6 — Keep Main Agent Generic
-
-The Service Plan Main Agent should NOT contain logic such as:
-
-if RMA request:
-    call specific RMA MCP tool
-
-Instead, it should only be responsible for routing to the RMA sub-agent.
-
-Conceptually:
-
-Main Agent
-   │
-   ├── RMA → RMA Sub-Agent
-   ├── Future Agent A → Future Sub-Agent A
-   ├── Future Agent B → Future Sub-Agent B
-   └── ...
+GET /api/ActiveReaction/search?inputActive=Cobalt
 
-RMA-specific skill selection and MCP invocation must remain inside the RMA sub-agent boundary.
+GET /api/ActiveReaction/search?outputActive=Sodium
 
-⸻
+GET /api/ActiveReaction/search?inputActive=Cobalt&outputActive=Sodium
 
-Step 7 — State Management
+Use GET with query parameters, following the
+existing API conventions.
 
-Review the existing LangGraph state implementation and extend it only where required.
+## 2.2 Search Behavior
 
-The state should be capable of carrying information such as:
-
-user_request
-intent
-selected_agent
-selected_skill
-skill_context
-mcp_tool
-mcp_input
-mcp_response
-error
-final_response
-
-Follow the existing project’s state model and naming conventions rather than introducing duplicate state objects.
+Implement the following behavior:
 
-⸻
+| Input Active | Output Active | Expected behavior |
+|---|---|---|
+| Cobalt | Sodium | Apply both filters using AND |
+| Cobalt | Empty | Search only by Input Active |
+| Empty | Sodium | Search only by Output Active |
+| Empty | Empty | Return HTTP 400 |
+| Whitespace | Sodium | Search only by Output Active |
+| Cobalt | Whitespace | Search only by Input Active |
+| Whitespace | Whitespace | Return HTTP 400 |
 
-Step 8 — Error Handling
+Requirements:
 
-Implement appropriate handling for:
+1. Both parameters are individually optional.
+2. At least one parameter must contain a
+   non-whitespace value.
+3. Trim leading and trailing whitespace.
+4. Treat null, empty, and whitespace-only
+   values as empty.
+5. When both parameters are populated,
+   apply AND logic.
+6. When only one parameter is populated,
+   apply only that filter.
+7. Never return the entire dataset when
+   both parameters are empty.
+8. Support partial matching.
+9. Follow existing case-sensitivity conventions.
 
-Skill not found
+If the existing business logic conflicts with
+these rules, identify the conflict before
+changing the behavior.
 
-RMA request
-   ↓
-No matching skill
-   ↓
-Return controlled response
+## 2.3 Active Ingredient Filtering
 
-MCP tool unavailable
+Inspect the existing data model and determine
+how input and output active ingredients are
+represented.
 
-Skill identified
-   ↓
-MCP unavailable
-   ↓
-Controlled error
+Use the existing Side property or equivalent
+business logic.
 
-MCP execution failure
+Ensure that:
 
-MCP call
-   ↓
-Failure
-   ↓
-Existing retry/error-handling mechanism
+- Input Active searches only input ingredients.
+- Output Active searches only output ingredients.
+- Both filters match the same Active IP.
+- Multiple ingredients per IP are supported.
+- Matching multiple ingredients does not
+  create duplicate IP results.
 
-Use the project’s existing retry, logging, tracing, and exception-handling patterns.
+Do not assume that an IP contains only one
+input or output active ingredient.
 
-Do not introduce a parallel error-handling framework.
+## 2.4 Sorting
 
-⸻
+Sort the search results by Chemical Equation.
 
-Step 9 — Observability
+Use the existing sorting conventions.
 
-Preserve and integrate existing:
+Ensure sorting is deterministic and handles
+null or empty chemical equations.
 
-* LangSmith tracing
-* LangGraph state/checkpointing
-* structured logging
-* request/trace IDs
-* MCP logging
-* error logging
+## 2.5 Response Structure
 
-The trace should make it possible to understand:
+Inspect the existing DTOs and data model.
 
-User Request
-   ↓
-Main Agent
-   ↓
-RMA Route
-   ↓
-RMA Skill
-   ↓
-MCP Tool
-   ↓
-MCP Response
-   ↓
-RMA Result
-   ↓
-Final Response
+The response must contain:
 
-Do not log sensitive request/response data if the existing project has sanitization rules.
+- ActiveIpId
+- ChemicalEquation
+- InputActives
+- OutputActives
 
-⸻
+Use the correct existing property types.
 
-Step 10 — Follow Existing Coding Patterns
+Ensure that the response can later be consumed
+by the Angular Active IP Search table.
 
-Before implementing anything:
+Do not introduce unnecessary DTOs if suitable
+ones already exist.
 
-Analyze the existing source code thoroughly.
+## 2.6 Controller and Service
 
-Follow existing patterns for:
+Implement the endpoint using the existing
+ActiveReactionController and service architecture.
 
-* project structure
-* agent classes
-* LangGraph nodes
-* state management
-* dependency injection
-* configuration
-* MCP clients
-* skill loading
-* prompts
-* logging
-* error handling
-* retries
-* testing
-* environment variables
-* model configuration
+Follow established conventions for:
 
-Do not introduce a new architectural pattern if an existing project pattern already solves the same problem.
+- Asynchronous methods
+- Dependency injection
+- Request validation
+- Error handling
+- Logging
+- CancellationToken, if supported
 
-⸻
+Avoid unrelated refactoring.
 
-Step 11 — Configuration
+## 2.7 Swagger Documentation
 
-Any MCP path, model, skill location, or runtime configuration that is currently configurable should remain configurable.
+Update Swagger documentation to describe:
 
-Do not hardcode:
+- Endpoint purpose
+- Query parameters
+- Search behavior
+- Successful response
+- HTTP 400 for missing search criteria
+- Other relevant error responses
 
-MCP URLs
-MCP paths
-model names
-API keys
-environment-specific values
+Ensure the endpoint is visible in Swagger.
 
-Use the existing configuration mechanism.
+# PHASE 3: BUILD AND VERIFY FORMULATION CORE
 
-The MCP path supplied by Bruno should be integrated through the appropriate configuration mechanism.
+After implementation:
 
-⸻
+1. Build the Formulation Core project.
+2. Fix compilation errors caused by the changes.
+3. Run the relevant unit tests.
+4. Verify the endpoint in Swagger.
+5. Test input-only search.
+6. Test output-only search.
+7. Test combined search.
+8. Test partial matching.
+9. Test empty search criteria.
+10. Verify the response structure.
+11. Verify sorting and duplicate handling.
 
-Expected Deliverables
+Regenerate the Formulation Core API client
+using the existing project process.
 
-Before modifying code, provide:
+Do not manually edit generated code.
 
-1. Existing RMA Skill Inventory
+If the API client requires a published Swagger
+document, follow the existing generation process.
 
-Skill
-Purpose
-Trigger
-MCP Tool
-MCP Path
-Input
-Output
+If the client cannot be generated, report
+the dependency and continue with other
+independent implementation work.
 
-2. Target Architecture
-
-Show:
-
-Main Agent
-   ↓
-RMA Sub-Agent
-   ↓
-RMA Skills
-   ↓
-MCP Tools
-
-3. File-Level Change Plan
-
-Clearly identify:
-
-File
-Change
-Reason
-
-4. LangGraph Changes
-
-Identify:
-
-* new nodes
-* modified nodes
-* state changes
-* routing changes
-* subgraph changes
-
-5. MCP Integration
-
-For every RMA skill:
-
-Skill → MCP Tool → Bruno MCP Path
-
-6. Implementation
-
-After the analysis and plan, implement the changes.
-
-7. Tests
-
-Add/update tests for:
-
-* Main Agent → RMA routing
-* RMA skill selection
-* skill .md loading
-* MCP tool selection
-* MCP invocation
-* successful MCP response
-* MCP failure
-* unknown skill
-* invalid input
-* future extensibility
-
-⸻
-
-Critical Constraints
-
-1. Do not rewrite the existing RMA business logic unnecessarily.
-2. Do not duplicate skill .md content into code unless required by the existing architecture.
-3. Do not guess MCP paths. Use the path provided by Bruno.
-4. Do not put RMA-specific MCP logic inside the Main Agent.
-5. Do not tightly couple the Main Agent to individual RMA skills.
-6. Use LangGraph as the orchestration mechanism.
-7. Keep the RMA implementation modular as a sub-agent/subgraph.
-8. Design the architecture so additional sub-agents can be added later.
-9. Preserve existing RMA functionality.
-10. Follow existing coding patterns before introducing new abstractions.
-
-Final Target
-
-The final architecture should look like:
-
-                    ┌──────────────────────┐
-                    │       USER           │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                 ┌─────────────────────────┐
-                 │ Service Plan Main Agent │
-                 │       Orchestrator      │
-                 └────────────┬────────────┘
-                              │
-                         LangGraph Router
-                              │
-                              ▼
-                 ┌─────────────────────────┐
-                 │      RMA Sub-Agent      │
-                 └────────────┬────────────┘
-                              │
-                       Skill Selection
-                              │
-                              ▼
-                 ┌─────────────────────────┐
-                 │       RMA Skill         │
-                 │        (.md)            │
-                 └────────────┬────────────┘
-                              │
-                       MCP Operation
-                              │
-                              ▼
-                 ┌─────────────────────────┐
-                 │      MCP Tool           │
-                 │   Bruno MCP Path        │
-                 └────────────┬────────────┘
-                              │
-                              ▼
-                       MCP Server
-                              │
-                              ▼
-                       RMA Response
-                              │
-                              ▼
-                       RMA Sub-Agent
-                              │
-                              ▼
-                    Main Agent State
-                              │
-                              ▼
-                       Final Response
-
-Start by analyzing the existing RMA .md skills, MCP integrations, and the current ssc-service-plan-agent-rt LangGraph architecture. Do not make assumptions about the MCP mapping or paths.
+# PHASE 4: IMPLEMENT FACTS API INTEGRATION
+
+After the Formulation Core API is implemented
+and its contract is available, integrate it
+into the FACTS API.
+
+## 4.1 Inspect Existing FACTS API Patterns
+
+Review:
+
+- ActiveReactionController
+- ActiveReactionService
+- ActiveQueryDto
+- Existing Active IP retrieval methods
+- FormulationCoreRepoClient
+- Existing generated client usage
+
+Follow the existing conventions.
+
+## 4.2 Implement Request and Response DTOs
+
+Reuse existing DTOs wherever possible.
+
+The search request must support:
+
+- InputActive
+- OutputActive
+
+The response must contain:
+
+- ActiveIpId
+- ChemicalEquation
+- InputActives
+- OutputActives
+
+Ensure the DTO types match the generated
+Formulation Core client contract.
+
+## 4.3 Implement the Service
+
+Add the search method to the existing
+ActiveReactionService.
+
+Expected method:
+
+SearchActiveIprAsync
+
+The service must:
+
+1. Accept the search criteria.
+2. Normalize the parameters.
+3. Validate the search criteria.
+4. Call the generated Formulation Core client.
+5. Pass the correct query parameters.
+6. Map the response to the FACTS API DTO.
+7. Preserve input/output ingredient distinctions.
+8. Prevent duplicate results if necessary.
+9. Ensure the required sorting.
+10. Return the expected response.
+
+Avoid unnecessary duplicate filtering or
+additional database queries.
+
+## 4.4 Implement the Controller
+
+Add the corresponding endpoint to the
+existing ActiveReactionController.
+
+HTTP method: GET
+
+Route:
+
+/api/ActiveReaction/search
+
+Query parameters:
+
+- inputActive
+- outputActive
+
+Follow the existing controller patterns.
+
+Return HTTP 400 when both search parameters
+are empty or whitespace-only.
+
+Follow existing error-handling conventions.
+
+Do not change unrelated endpoints.
+
+# PHASE 5: BUILD AND TEST FACTS API
+
+After implementing the FACTS API integration:
+
+1. Build the FACTS API project.
+2. Fix compilation errors caused by the changes.
+3. Run the relevant unit tests.
+4. Verify that the generated client is used correctly.
+5. Verify that the new endpoint is available in Swagger.
+6. Verify the request and response types.
+
+Do not proceed to Angular implementation.
+
+# PHASE 6: END-TO-END API TESTING THROUGH SWAGGER
+
+The primary validation for this task is testing
+the complete backend API through Swagger.
+
+Run the required services and ensure that
+the FACTS API can communicate with Formulation Core.
+
+Use the Swagger UI for the FACTS API endpoint.
+
+Test the following scenarios:
+
+## Test 1: Input Active only
+
+Request:
+
+GET /api/ActiveReaction/search?inputActive=Cobalt
+
+Expected:
+- HTTP 200
+- Only matching input active records
+- Correct Active IP IDs
+- Correct Chemical Equations
+- Correct input and output active values
+- Results sorted by Chemical Equation
+
+## Test 2: Output Active only
+
+Request:
+
+GET /api/ActiveReaction/search?outputActive=Sodium
+
+Expected:
+- HTTP 200
+- Only matching output active records
+- Correct response structure
+- Results sorted by Chemical Equation
+
+## Test 3: Both filters
+
+Request:
+
+GET /api/ActiveReaction/search?inputActive=Cobalt&outputActive=Sodium
+
+Expected:
+- HTTP 200
+- Records matching both filters
+- No unrelated records
+- No duplicate Active IP records
+- Correct sorting
+
+## Test 4: Partial matching
+
+Request:
+
+GET /api/ActiveReaction/search?inputActive=Cob
+
+Expected:
+- HTTP 200
+- Records matching the partial search term
+- Correct response structure
+
+## Test 5: Empty Input Active
+
+Request:
+
+GET /api/ActiveReaction/search?inputActive=&outputActive=Sodium
+
+Expected:
+- HTTP 200
+- Search only by Output Active
+
+## Test 6: Empty Output Active
+
+Request:
+
+GET /api/ActiveReaction/search?inputActive=Cobalt&outputActive=
+
+Expected:
+- HTTP 200
+- Search only by Input Active
+
+## Test 7: Both parameters empty
+
+Request:
+
+GET /api/ActiveReaction/search
+
+Expected:
+- HTTP 400
+- Appropriate validation message
+- No unfiltered database query
+
+## Test 8: Whitespace-only parameters
+
+Request:
+
+GET /api/ActiveReaction/search?inputActive=%20&outputActive=%20
+
+Expected:
+- HTTP 400
+- Appropriate validation message
+
+## Test 9: No matching records
+
+Request:
+
+GET /api/ActiveReaction/search?inputActive=NonExistingActive
+
+Expected:
+- HTTP 200
+- Empty result collection
+- No server error
+
+## Test 10: Error handling
+
+Verify that Formulation Core failures are
+handled using the existing FACTS API error
+handling conventions.
+
+Do not expose internal exception details
+in API responses.
+
+For every test, record:
+
+- Request URL
+- HTTP status
+- Actual response
+- Expected result
+- Pass or fail
+
+Use actual data available in the development
+environment. Do not fabricate test results.
+
+If Swagger testing is blocked by unavailable
+services, credentials, or environment setup,
+report the exact blocker.
+
+# PHASE 7: AUTOMATED TESTING
+
+In addition to Swagger testing, add automated
+tests following existing project conventions.
+
+Formulation Core tests should cover:
+
+- Input-only search
+- Output-only search
+- Combined search
+- AND behavior
+- Partial matching
+- Null and empty values
+- Whitespace-only values
+- Both parameters empty
+- No matching records
+- Duplicate prevention
+- Multiple active ingredients
+- Chemical Equation sorting
+
+FACTS API tests should cover:
+
+- Query parameter binding
+- Request validation
+- Generated client invocation
+- Parameter forwarding
+- DTO mapping
+- Empty responses
+- Error handling
+- Cancellation, if supported
+
+Run all relevant tests and report actual results.
+
+# PHASE 8: COMPLETION CRITERIA
+
+The backend task is complete only when:
+
+[ ] Relevant skills and repository instructions
+    have been read.
+
+[ ] Existing architecture and coding patterns
+    have been inspected.
+
+[ ] Formulation Core API is implemented.
+
+[ ] Formulation Core builds successfully.
+
+[ ] Relevant Formulation Core tests pass.
+
+[ ] Generated C# client is updated.
+
+[ ] FACTS API integration is implemented.
+
+[ ] FACTS API builds successfully.
+
+[ ] Relevant FACTS API tests pass.
+
+[ ] The search endpoint is visible in Swagger.
+
+[ ] Input-only search is verified.
+
+[ ] Output-only search is verified.
+
+[ ] Combined search is verified.
+
+[ ] Partial matching is verified.
+
+[ ] Empty parameter behavior is verified.
+
+[ ] Both-empty validation is verified.
+
+[ ] No-result behavior is verified.
+
+[ ] Duplicate handling is verified.
+
+[ ] Sorting is verified.
+
+[ ] The complete backend flow is tested
+    through Swagger.
+
+[ ] The API response matches the agreed contract.
+
+[ ] Existing endpoints remain unaffected.
+
+[ ] Backend implementation is ready for
+    Angular integration.
+
+# STRICT SCOPE RESTRICTION
+
+Do not implement Angular UI in this task.
+
+Do not modify:
+- Angular components
+- Angular services
+- Angular API clients
+- AG Grid configuration
+- UI styling
+- UI search forms
+
+The next phase will begin only after the
+backend API has been built and tested
+successfully through Swagger.
+
+# FINAL REPORT
+
+After completing the implementation, provide:
+
+1. Repository analysis
+2. Skills and instructions read
+3. Files created and modified
+4. API contract
+5. Implementation details
+6. Generated client changes
+7. Build results
+8. Automated test results
+9. Swagger test results
+10. Any blockers or unresolved requirements
+11. Confirmation of backend readiness
+    for Angular integration
+
+Clearly distinguish between:
+- Implemented
+- Built
+- Automated tests passed
+- Manually tested through Swagger
+- Not tested due to blockers
+
+Do not claim Swagger testing is complete
+unless the endpoint was actually tested.
+
+Do not start frontend implementation.
