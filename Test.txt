@@ -1,237 +1,62 @@
-# Task: Final Code Review – Active IPR Search UI
-Jira: FOREP-2713
-Repository: Facts UI (Angular)
-
-Perform a comprehensive code review of the Active IPR Search
-UI implementation and its integration with the Facts API.
+Review the final code review findings for the Active IPR Search
+UI implementation and fix the confirmed issues.
 
 IMPORTANT:
-This is a REVIEW-ONLY task.
-Do not modify any files or implement fixes.
-Identify issues and provide recommendations.
+- Follow existing Angular coding patterns and project conventions.
+- Do not introduce unnecessary abstractions or dependencies.
+- Do not modify unrelated functionality.
+- Preserve the existing UI design and behavior.
+- Do not modify generated API clients manually.
 
-## 1. Read Project Instructions
+1. Fix stale search results
+- When a new search fails, ensure that results from the
+  previous search are not incorrectly displayed as current.
+- Clear stale results or explicitly preserve them with
+  a clear indication that they are outdated.
+- Handle loading and error states consistently.
 
-Before reviewing:
-- Read the applicable repository instructions and skills.
-- Understand the existing Angular architecture.
-- Follow the established coding patterns.
-- Inspect existing API integrations and similar components.
-- Review the complete implementation and Git diff.
+2. Handle API errors
+- Handle HTTP 400, 401, 403, 404, 500, and network errors.
+- Handle null, malformed, and unexpected API responses.
+- Prevent invalid data from being displayed in the grid.
+- Follow the existing project's error-handling and
+  notification patterns.
 
-Do not assume the implementation is correct simply because
-the application builds successfully.
+3. Review search request lifecycle
+- Ensure that Clear cancels pending requests.
+- Prevent outdated responses from overwriting newer results.
+- Prevent duplicate search submissions.
+- Ensure subscriptions are properly cleaned up.
 
-## 2. Review API Integration
+4. Add missing unit tests
+- Search success followed by search failure.
+- Search success followed by another successful search.
+- Empty and malformed API responses.
+- HTTP and network errors.
+- Clear while a request is pending.
+- Component destruction during an active request.
+- Verify that stale results are not displayed incorrectly.
 
-Verify that the Angular UI correctly integrates with:
+5. Generated client verification
+- Inspect FormulationCoreRepoClient and the current
+  Swagger specification.
+- Do not regenerate or modify the client unless the
+  required search endpoint is available in Swagger.
+- If regeneration is necessary, explain the exact steps
+  and verify that unrelated generated methods are preserved.
 
-GET /api/ActiveReaction/search
+6. Existing details-page behavior
+- Do not change the existing details-page implementation
+  as part of this search fix.
+- Clearly identify any existing limitations separately.
 
-Query parameters:
-- inputActive (optional)
-- outputActive (optional)
+7. Final verification
+- Run the focused Angular unit tests.
+- Run the Angular production build.
+- Report all modified files.
+- Report test results and any remaining issues.
+- Distinguish fixed issues from pre-existing limitations.
 
-Expected response:
-
-[
-  {
-    "activeIprId": 1,
-    "chemicalEquation": "2Ca + Cl2 => 2CaCl",
-    "inputActives": "Cypruflone, quinoline oxazolidinone",
-    "outputActives": "isopropylamine, procymidone"
-  }
-]
-
-Verify:
-- The correct API endpoint is used.
-- Query parameters are passed correctly.
-- URL encoding is handled properly.
-- The generated API client is used if required by
-  the existing architecture.
-- The response DTO matches the backend contract.
-- The API base URL is configured correctly.
-- Authentication and authorization follow existing patterns.
-- HTTP errors are handled correctly.
-
-Compare the implementation with existing API integrations
-in the project.
-
-## 3. Review Search Functionality
-
-Verify all the following scenarios:
-
-1. Input Active only.
-2. Output Active only.
-3. Both fields populated.
-4. Both fields empty.
-5. Whitespace-only input.
-6. Partial active-name searches.
-7. Case-insensitive matching.
-8. Search returning multiple results.
-9. Search returning no results.
-10. API failure.
-
-Confirm that:
-- At least one search field is required.
-- Both parameters are sent when both fields are populated.
-- Empty parameters are handled correctly.
-- The UI does not introduce additional filtering that
-  conflicts with backend search semantics.
-- Duplicate requests are prevented appropriately.
-- Search results are updated correctly after each request.
-
-## 4. Review UI and Grid Integration
-
-Inspect the existing Active IPR Search component.
-
-Verify:
-- The Input Active and Output Active fields are correctly bound.
-- The Search button triggers the API.
-- The Clear button resets the form and results.
-- The Search Results grid displays the API response correctly.
-- Chemical Equation, Input Actives, and Output Actives
-  are mapped to the correct columns.
-- Empty results display the appropriate message.
-- Loading indicators work correctly.
-- Error messages are displayed appropriately.
-- The Create New Active IPR action still works.
-- Existing layout and styling have been preserved.
-
-Check for unnecessary UI changes or duplicated logic.
-
-## 5. Review Angular Coding Standards
-
-Verify:
-- Existing component and service patterns are followed.
-- Dependency injection is implemented consistently.
-- TypeScript types are correct.
-- Existing interfaces and generated DTOs are reused.
-- Observables and subscriptions are handled correctly.
-- Memory leaks are avoided.
-- Async operations and loading states are managed correctly.
-- No unnecessary dependencies or abstractions were introduced.
-- No hardcoded URLs or placeholder data remain.
-- No unrelated files were modified.
-
-## 6. Review Error Handling and Edge Cases
-
-Check:
-- HTTP 400 responses.
-- HTTP 401 and 403 responses.
-- HTTP 404 responses.
-- HTTP 500 responses.
-- Empty response arrays.
-- Null or unexpected response values.
-- Network failures.
-- Repeated searches while a request is pending.
-- Clearing the form while a request is pending.
-- Stale responses overwriting newer search results.
-
-Identify any cases that could cause incorrect results,
-uncaught exceptions, or a broken UI.
-
-## 7. Review Unit Tests
-
-Inspect the existing unit tests and verify coverage for:
-
-- Input-only search.
-- Output-only search.
-- Both search parameters.
-- Empty input validation.
-- Whitespace handling.
-- Successful API response.
-- Empty results.
-- API errors.
-- Loading state.
-- Clear button.
-- Grid data binding.
-- Create New Active IPR functionality.
-
-Check whether the tests actually validate the behavior
-or merely verify that methods were called.
-
-Run the relevant tests and Angular build if possible.
-
-Report actual results. Do not claim that unexecuted tests passed.
-
-## 8. Review Backend Contract Compatibility
-
-Compare the Angular implementation with the actual
-Facts API endpoint and its Swagger response.
-
-Verify:
-- Request parameter names and types.
-- Response property names and types.
-- Optional parameter behavior.
-- Empty search behavior.
-- Response serialization.
-- Compatibility with the regenerated
-  FormulationCoreRepoClient integration.
-
-Do not modify either backend repository.
-
-## 9. Identify Issues
-
-Classify findings by severity:
-
-P0 - Critical
-P1 - High
-P2 - Medium
-P3 - Low
-
-For each finding, provide:
-- Severity.
-- File name and line number.
-- Description.
-- Actual impact.
-- Steps or conditions to reproduce.
-- Recommended fix.
-
-Clearly distinguish confirmed defects from potential risks
-and optional improvements.
-
-Avoid reporting stylistic preferences as defects.
-
-## 10. Final Review Report
-
-Generate the report using this structure:
-
-1. Executive Summary
-2. API Integration Review
-3. Search Functionality Review
-4. UI and Grid Review
-5. Angular Coding Standards
-6. Error Handling and Edge Cases
-7. Unit Test Coverage
-8. Backend Contract Compatibility
-9. Issues by Severity
-10. Recommended Fixes
-11. Final Verification Checklist
-
-For the final checklist, report:
-- API integration verified
-- Search scenarios verified
-- Grid binding verified
-- Error handling verified
-- Existing functionality preserved
-- Unit tests passed
-- Angular build passed
-- No critical issues found
-
-Mark each item as PASS, FAIL, or NOT VERIFIED.
-
-## STRICT RULES
-
-- Review only. Do not edit any files.
-- Do not implement fixes automatically.
-- Do not regenerate API clients.
-- Do not modify backend code.
-- Do not refactor unrelated components.
-- Do not invent test results.
-- Follow existing repository conventions.
-- Base findings on actual source code and test results.
-- If something cannot be verified, explicitly state why.
-
-At the end, provide a concise list of changes required
-before the UI implementation can be considered complete.
+Before making changes, inspect the current implementation
+and identify which review findings are reproducible.
+Fix only confirmed issues within the scope of this task.
