@@ -1,129 +1,298 @@
-Perform a comprehensive final code review of the FOREP-2699
-Active Reaction Search API implementation across both the
-Facts API and Formulation API repositories.
+# Task: Integrate Active IPR Search API into Angular UI
+Jira: FOREP-2713
+Repository: Facts UI (Angular)
+
+## Objective
+
+Integrate the newly implemented Active IPR Search API into the
+existing Angular Active IPR Search page.
+
+The backend implementation is complete in both Facts API and
+Formulation API. FormulationCoreRepoClient has also been regenerated.
+
+The API has been tested successfully in Swagger and returns HTTP 200
+with the expected response structure.
+
+Your task is to integrate this API into the existing Angular UI,
+following the project's established coding patterns and conventions.
 
 IMPORTANT:
-FormulationCoreRepoClient has now been regenerated.
-Review the implementation using the regenerated client.
-Do not assume the previous generated-client limitations still apply.
+This is an implementation task, not a redesign.
+Preserve the existing UI, application architecture, and functionality.
 
-Before reviewing:
-1. Read the available repository instructions and relevant skills.
-2. Understand the existing API integration patterns.
-3. Compare the implementation with existing ActiveReaction,
-   Actives, and FormulationType integrations.
-4. Review the complete changes in both repositories.
+# PHASE 1: UNDERSTAND THE EXISTING PROJECT
 
-REVIEW SCOPE
+Before making any code changes:
 
-1. FORMULATION API
-- Verify the new Active IP search endpoint.
-- Validate input/output filtering, including empty and null inputs.
-- Verify partial matching, case-insensitive behavior, and AND
-  conditions when both filters are supplied.
-- Verify distinct Active IP results and sorting by Chemical Equation.
-- Check DTOs, service implementation, controller, and database queries.
-- Review unit tests and Swagger documentation.
+1. Read all applicable repository instructions and available skills.
+2. Analyze the existing Angular project architecture.
+3. Inspect the existing Active IPR Search component:
+   - actives-ip.component.ts
+   - actives-ip.component.html
+   - actives-ip.component.scss
+   - actives-ip.component.spec.ts
+4. Inspect the existing API service and HTTP integration patterns.
+5. Identify how other Angular components call backend APIs.
+6. Examine existing grid implementations and follow the same
+   approach for displaying search results.
+7. Check the existing routing, dependency injection, error handling,
+   loading indicators, and notification patterns.
 
-2. FACTS API
-- Verify FormulationCoreRepoClient uses the newly generated
-  search method correctly.
-- Ensure the generated client is configured consistently with
-  existing API integrations.
-- Review ActiveReactionService, its interface, and controller.
-- Verify request parameters, response mapping, and error handling.
-- Confirm the implementation follows existing Facts API patterns.
-- Identify any unnecessary duplicate logic or abstractions.
+Do not introduce a new architectural pattern if an existing
+project pattern already handles the requirement.
 
-3. API INTEGRATION
-- Verify the complete request flow:
-  Angular UI → Facts API → FormulationCoreRepoClient
-  → Formulation API → Database.
-- Confirm the request and response DTOs match across both APIs.
-- Verify URL encoding, query parameter binding, and serialization.
-- Check authentication, authorization, and HTTP status handling.
-- Confirm that empty search results return the expected response.
+# PHASE 2: UNDERSTAND THE API CONTRACT
 
-4. SECURITY AND CONFIGURATION
-- Check for exposed credentials or client secrets.
-- Review appsettings and environment-specific configuration.
-- Identify any unintended configuration changes.
-- Verify that authentication follows existing integration patterns.
+The Facts API exposes the following endpoint:
 
-5. TESTING
-- Review all new and modified unit tests.
-- Verify input-only, output-only, and both-input searches.
-- Verify empty inputs, whitespace, partial matches, and no results.
-- Check duplicate records, sorting, and incorrect-side matches.
-- Identify missing HTTP client and integration tests.
-- Run relevant builds and tests where possible.
-- Report actual test results; do not assume unexecuted tests pass.
+GET /api/ActiveReaction/search
 
-6. GENERATED CLIENT
-- Verify that FormulationCoreRepoClient was regenerated from
-  the correct OpenAPI specification.
-- Confirm the generated search method and DTOs are present.
-- Check that unrelated generated code was not unnecessarily changed.
-- Ensure no manually maintained code was overwritten.
-- Confirm that the generated client is used instead of a
-  redundant handwritten HTTP implementation.
+Query parameters:
 
-7. MERGE READINESS
-- Review the complete diff in both repositories.
-- Identify unnecessary changes, regressions, and missing files.
-- Verify that the implementation satisfies the Jira acceptance
-  criteria for FOREP-2713.
-- Check whether the Angular UI can consume the final response
-  contract without additional backend changes.
+- inputActive: string (optional)
+- outputActive: string (optional)
 
-OUTPUT FORMAT
+The endpoint supports:
+- Input-only searches.
+- Output-only searches.
+- Searches with both input and output.
+- Partial, case-insensitive matching.
+- AND matching when both parameters are provided.
 
-Provide a detailed review with these sections:
+At least one search parameter must contain a non-empty value.
 
-1. Executive Summary
-2. Implementation Verification
-3. Formulation API Review
-4. Facts API Review
-5. Generated Client Review
-6. API Integration and Contract Verification
-7. Security and Configuration Issues
-8. Test Results and Missing Coverage
-9. Issues Classified by Severity
-   - P0: Critical
-   - P1: High
-   - P2: Medium
-   - P3: Low
-10. Final Merge Checklist
+The API returns HTTP 200 with an array of results.
 
-For every issue, include:
-- Severity
-- File and line number
-- Description
-- Why it is a problem
-- Recommended fix
+Response structure:
 
-Clearly distinguish confirmed defects from potential risks
-and recommendations.
+[
+  {
+    "activeIprId": 1,
+    "chemicalEquation": "2Ca + Cl2 => 2CaCl",
+    "inputActives": "Cypruflone, quinoline oxazolidinone",
+    "outputActives": "isopropylamine, procymidone"
+  },
+  {
+    "activeIprId": 5,
+    "chemicalEquation": "dummy entry",
+    "inputActives": "Magnesium",
+    "outputActives": "cafensole"
+  }
+]
 
-IMPORTANT RESTRICTIONS:
-- This is a review-only task. Do not modify any source files.
-- Do not regenerate the client again unless explicitly requested.
-- Do not revert or discard any existing changes.
-- Do not report an issue merely because the implementation
-  differs from your preferred coding style.
-- Follow the existing repository conventions.
-- Do not assume that a missing feature is a defect without
-  checking the requirements and API contract.
-- Verify findings against the actual source code and test results.
+Verify the actual generated API service and existing DTOs before
+implementing the integration.
 
-FINAL CONCLUSION
+Do not create duplicate interfaces if the project already has
+appropriate generated types.
 
-Summarize whether the implementation satisfies the acceptance
-criteria and list any remaining blockers.
+# PHASE 3: IMPLEMENT THE API INTEGRATION
 
-Do not mark the implementation as ready to merge if there are
-unresolved critical issues, exposed credentials, or failing
-required tests.
+Integrate the search API into the existing Active IPR Search page.
 
-If everything is verified, explicitly state which checks
-passed and which could not be verified.
+Requirements:
+
+1. Use the existing Angular service architecture.
+2. Add or reuse the appropriate API service method.
+3. Use the existing HTTP client and configured API base URL.
+4. Pass inputActive and outputActive as query parameters.
+5. Ensure query parameters are correctly encoded.
+6. Use the generated API client if that is the established
+   project pattern.
+7. Avoid hardcoded URLs and duplicate HTTP logic.
+8. Follow the existing Observable or Promise conventions.
+9. Do not introduce unnecessary dependencies.
+
+Do not modify the backend or regenerate the API client as part
+of this task.
+
+# PHASE 4: SEARCH FORM FUNCTIONALITY
+
+Connect the existing Input Active and Output Active fields
+to the API.
+
+Implement the following behavior:
+
+A. Input Active only
+- When the user enters an input active and clicks Search,
+  call the API with inputActive.
+- Display the matching results.
+
+B. Output Active only
+- When the user enters an output active and clicks Search,
+  call the API with outputActive.
+- Display the matching results.
+
+C. Both fields populated
+- Send both parameters in the same API request.
+- Display only the results returned by the backend.
+
+D. Both fields empty
+- Do not call the API.
+- Display an appropriate validation message.
+- Follow the project's existing form validation conventions.
+
+E. Whitespace
+- Trim leading and trailing whitespace before submitting.
+- Treat whitespace-only values as empty.
+
+F. Partial matching
+- Allow users to enter partial active names.
+- Let the backend handle matching.
+- Do not introduce additional client-side filtering that
+  changes the API's search semantics.
+
+G. Search button
+- Trigger the API request when clicked.
+- Prevent duplicate requests while a search is in progress,
+  following existing project conventions.
+
+# PHASE 5: DISPLAY SEARCH RESULTS
+
+Integrate the API response into the existing Search Results grid.
+
+Display these columns:
+
+1. Chemical Equation
+2. Input Actives
+3. Output Actives
+
+Requirements:
+
+- Bind the API response directly to the appropriate grid data source.
+- Use the existing grid component and configuration.
+- Follow existing column definitions and formatting conventions.
+- Preserve the existing grid layout and styling.
+- Do not introduce a new grid library.
+- Ensure long chemical equations and active names are displayed
+  consistently with existing grid behavior.
+- Do not display hardcoded or placeholder results.
+
+If the API returns an empty array, display the project's
+existing no-records message or equivalent.
+
+# PHASE 6: LOADING AND ERROR HANDLING
+
+Implement the following UI states:
+
+1. Loading:
+   Display the existing loading indicator while the API request
+   is in progress.
+
+2. Success:
+   Populate the grid with the API response.
+
+3. No results:
+   Display the existing no-records message when the response
+   contains no results.
+
+4. API error:
+   Display an appropriate user-friendly error message.
+   Follow the project's existing error-handling pattern.
+
+5. Clear:
+   The Clear button should reset both input fields,
+   clear the search results, and reset relevant validation
+   and error messages.
+
+Ensure that a failed request does not leave the UI in a
+permanent loading state.
+
+# PHASE 7: PRESERVE EXISTING FUNCTIONALITY
+
+The existing Active IPR Search page contains:
+
+- Input Active field
+- Output Active field
+- Search button
+- Clear button
+- Search Results grid
+- Create New Active IPR action
+
+Preserve all existing functionality.
+
+In particular:
+- Do not remove or break the Create New Active IPR action.
+- Do not change existing routes unnecessarily.
+- Do not change unrelated components.
+- Preserve the existing page layout and visual styling.
+- Do not introduce unrelated UI improvements.
+
+# PHASE 8: TESTING
+
+Review the existing unit tests before adding or modifying tests.
+
+Add tests following the project's existing testing conventions.
+
+Cover the following scenarios:
+
+1. Input-only search.
+2. Output-only search.
+3. Search with both parameters.
+4. Validation when both fields are empty.
+5. Whitespace-only input.
+6. Successful API response.
+7. Empty API response.
+8. API error handling.
+9. Loading indicator behavior.
+10. Clear button behavior.
+11. Correct binding of results to the grid.
+12. Preservation of the Create New Active IPR action.
+
+Mock the API service using the existing testing patterns.
+
+Do not make real backend calls from unit tests.
+
+Run the relevant unit tests and Angular build.
+Report the actual results.
+
+# PHASE 9: CODE QUALITY AND FINAL REVIEW
+
+After implementation:
+
+1. Review all modified files.
+2. Check for TypeScript compilation errors.
+3. Check for template errors.
+4. Check for lint errors, if configured.
+5. Verify that no unnecessary files were modified.
+6. Verify that existing coding conventions were followed.
+7. Ensure subscriptions and asynchronous operations are
+   handled according to existing project patterns.
+8. Check that the API response is mapped correctly to the grid.
+
+Do not modify unrelated code to fix pre-existing issues.
+
+# IMPORTANT IMPLEMENTATION RULES
+
+- Read the relevant skills and repository instructions first.
+- Follow the existing Angular coding patterns.
+- Reuse existing services, components, and utilities.
+- Prefer generated API types when available.
+- Do not duplicate existing functionality.
+- Do not hardcode API URLs.
+- Do not modify backend repositories.
+- Do not redesign the page.
+- Do not remove existing functionality.
+- Do not assume tests pass without running them.
+- Do not make unrelated refactoring changes.
+
+If you discover an ambiguity in the API contract or an existing
+implementation constraint, inspect the relevant code first.
+Ask for clarification only if the issue cannot be resolved
+from the repository or API contract.
+
+# FINAL DELIVERABLE
+
+After completing the implementation, provide:
+
+1. Summary of the changes.
+2. List of modified files.
+3. Explanation of the API integration.
+4. Description of the search behavior.
+5. Unit test results.
+6. Angular build results.
+7. Any remaining issues or blockers.
+
+Implement the changes directly in the existing Angular project.
+Do not stop after producing a plan. Complete the implementation
+and validate it.
