@@ -1,56 +1,129 @@
-Based on the completed code review, implement the
-necessary fixes for Active IP Search.
+Perform a comprehensive final code review of the FOREP-2699
+Active Reaction Search API implementation across both the
+Facts API and Formulation API repositories.
 
 IMPORTANT:
-Follow the existing coding patterns in both repositories.
-Do not rewrite working code or introduce unnecessary
-abstractions.
+FormulationCoreRepoClient has now been regenerated.
+Review the implementation using the regenerated client.
+Do not assume the previous generated-client limitations still apply.
 
-Implement the changes in this order:
+Before reviewing:
+1. Read the available repository instructions and relevant skills.
+2. Understand the existing API integration patterns.
+3. Compare the implementation with existing ActiveReaction,
+   Actives, and FormulationType integrations.
+4. Review the complete changes in both repositories.
 
-1. Remove exposed client secrets from the modified
-   configuration files. Do not invent replacement
-   credentials.
+REVIEW SCOPE
 
-2. Fix null-response handling in
-   ActiveReactionClient.Search.cs.
-   Preserve the original upstream HTTP status and
-   error information.
+1. FORMULATION API
+- Verify the new Active IP search endpoint.
+- Validate input/output filtering, including empty and null inputs.
+- Verify partial matching, case-insensitive behavior, and AND
+  conditions when both filters are supplied.
+- Verify distinct Active IP results and sorting by Chemical Equation.
+- Check DTOs, service implementation, controller, and database queries.
+- Review unit tests and Swagger documentation.
 
-3. Review SQL LIKE wildcard handling.
-   Preserve the intended partial-match behavior.
-   Add tests for literal and wildcard characters
-   according to the agreed requirements.
+2. FACTS API
+- Verify FormulationCoreRepoClient uses the newly generated
+  search method correctly.
+- Ensure the generated client is configured consistently with
+  existing API integrations.
+- Review ActiveReactionService, its interface, and controller.
+- Verify request parameters, response mapping, and error handling.
+- Confirm the implementation follows existing Facts API patterns.
+- Identify any unnecessary duplicate logic or abstractions.
 
-4. Add missing database tests for input-only,
-   output-only, and incorrect-side matches.
+3. API INTEGRATION
+- Verify the complete request flow:
+  Angular UI → Facts API → FormulationCoreRepoClient
+  → Formulation API → Database.
+- Confirm the request and response DTOs match across both APIs.
+- Verify URL encoding, query parameter binding, and serialization.
+- Check authentication, authorization, and HTTP status handling.
+- Confirm that empty search results return the expected response.
 
-5. Configure and run the Formulation API tests.
-   Do not skip tests silently if database
-   configuration is unavailable.
+4. SECURITY AND CONFIGURATION
+- Check for exposed credentials or client secrets.
+- Review appsettings and environment-specific configuration.
+- Identify any unintended configuration changes.
+- Verify that authentication follows existing integration patterns.
 
-6. Review the existing FormulationCoreRepoClient.
-   Determine whether the generated-client migration
-   can be completed using the current OpenAPI
-   specification.
+5. TESTING
+- Review all new and modified unit tests.
+- Verify input-only, output-only, and both-input searches.
+- Verify empty inputs, whitespace, partial matches, and no results.
+- Check duplicate records, sorting, and incorrect-side matches.
+- Identify missing HTTP client and integration tests.
+- Run relevant builds and tests where possible.
+- Report actual test results; do not assume unexecuted tests pass.
 
-7. If the generated client is regenerated, remove
-   the custom bridge in the same change and ensure
-   all callers compile.
+6. GENERATED CLIENT
+- Verify that FormulationCoreRepoClient was regenerated from
+  the correct OpenAPI specification.
+- Confirm the generated search method and DTOs are present.
+- Check that unrelated generated code was not unnecessarily changed.
+- Ensure no manually maintained code was overwritten.
+- Confirm that the generated client is used instead of a
+  redundant handwritten HTTP implementation.
 
-8. Build both repositories and run all relevant tests.
+7. MERGE READINESS
+- Review the complete diff in both repositories.
+- Identify unnecessary changes, regressions, and missing files.
+- Verify that the implementation satisfies the Jira acceptance
+  criteria for FOREP-2713.
+- Check whether the Angular UI can consume the final response
+  contract without additional backend changes.
 
-9. Verify the API endpoints using Swagger wherever
-   the required environment is available.
+OUTPUT FORMAT
 
-Do not change unrelated code.
+Provide a detailed review with these sections:
 
-After implementation, provide:
-- Files modified
-- Fixes implemented
-- Tests executed and actual results
-- Remaining blockers
-- Any manual Swagger verification still required
+1. Executive Summary
+2. Implementation Verification
+3. Formulation API Review
+4. Facts API Review
+5. Generated Client Review
+6. API Integration and Contract Verification
+7. Security and Configuration Issues
+8. Test Results and Missing Coverage
+9. Issues Classified by Severity
+   - P0: Critical
+   - P1: High
+   - P2: Medium
+   - P3: Low
+10. Final Merge Checklist
 
-Do not claim end-to-end success without actually
-testing the complete API flow.
+For every issue, include:
+- Severity
+- File and line number
+- Description
+- Why it is a problem
+- Recommended fix
+
+Clearly distinguish confirmed defects from potential risks
+and recommendations.
+
+IMPORTANT RESTRICTIONS:
+- This is a review-only task. Do not modify any source files.
+- Do not regenerate the client again unless explicitly requested.
+- Do not revert or discard any existing changes.
+- Do not report an issue merely because the implementation
+  differs from your preferred coding style.
+- Follow the existing repository conventions.
+- Do not assume that a missing feature is a defect without
+  checking the requirements and API contract.
+- Verify findings against the actual source code and test results.
+
+FINAL CONCLUSION
+
+Summarize whether the implementation satisfies the acceptance
+criteria and list any remaining blockers.
+
+Do not mark the implementation as ready to merge if there are
+unresolved critical issues, exposed credentials, or failing
+required tests.
+
+If everything is verified, explicitly state which checks
+passed and which could not be verified.
