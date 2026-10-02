@@ -1,47 +1,253 @@
-We have an existing Jira task, FOREP-2713, implemented
-by another team member.
+Act as a senior .NET backend developer and perform a
+thorough code review of the Active IP Search implementation
+across the FACTS API and Formulation API repositories.
 
-This task created the ActiveReactionController,
-DTOs, AutoMapper mappings, and service for the
-FACTS API.
+CONTEXT
+-------
+We have two repositories:
 
-Our current task is FOREP-2699: Active IP Search.
+1. FACTS API
+2. Formulation API
 
-Before implementing anything, inspect the existing
-FOREP-2713 implementation in the current repository.
+We have implemented a new Active IP Search feature
+across both repositories.
 
-Reuse the existing:
-- ActiveReactionController
-- ActiveReactionService
-- DTOs
-- AutoMapper mappings
-- Formulation Core API client
-- Existing API methods
+The Formulation API exposes the search endpoint.
+The FACTS API consumes that endpoint and exposes
+its own search endpoint to the Angular UI.
 
-Do not recreate existing functionality.
+However, we need to verify that our implementation
+follows the existing repository architecture and
+coding patterns.
 
-Determine whether the existing service and API client
-already provide the data required for Active IP Search.
+PRIMARY OBJECTIVE
+-----------------
+Inspect existing FACTS API endpoints that communicate
+with Formulation API.
 
-If the existing API supports the required search,
-reuse it.
+Use those existing implementations as the reference
+for reviewing our new Active IP Search implementation.
 
-If it does not, identify exactly what functionality
-is missing and whether a new Formulation Core
-endpoint is necessary.
+Do not assume our current implementation is correct.
 
-Implement only the missing functionality required
-for FOREP-2699.
+PHASE 1: UNDERSTAND EXISTING IMPLEMENTATION
+--------------------------------------------
 
-Follow the existing coding patterns and repository
-instructions.
+1. Read the repository instructions and relevant skills.
+2. Inspect the existing FACTS API architecture.
+3. Identify existing controllers, services, and API
+   clients that communicate with Formulation API.
+4. Select relevant existing endpoints that follow
+   the same communication pattern.
+5. Trace their complete request flow:
 
-Complete the backend implementation first.
-Build the API and verify the search endpoint
-through Swagger.
+   FACTS Controller
+       -> FACTS Service
+       -> FormulationCoreRepoClient
+       -> Formulation API
+       -> Response mapping
+       -> FACTS Controller
+       -> Angular UI
 
-Do not modify the Angular UI.
+6. Identify how existing endpoints handle:
+   - HTTP requests and responses
+   - Dependency injection
+   - DTOs and mappings
+   - Error handling
+   - Logging
+   - Async/await
+   - Cancellation tokens
+   - Null and empty responses
+   - Configuration
+   - Unit testing
 
-Before making changes, report which existing
-components can be reused and which files need
-modification. Then proceed with implementation.
+Document the actual patterns found in the code.
+Do not invent conventions.
+
+PHASE 2: REVIEW OUR ACTIVE IP SEARCH
+-------------------------------------
+
+Inspect all relevant changes in both repositories.
+
+FACTS API:
+- ActiveReactionController.cs
+- ActiveReactionService.cs
+- ActiveReactionService.cs in ServiceInterfaces
+- FormulationCoreRepoClient.cs
+- ActiveReactionClient.Search.cs
+- ActiveIpSearchDto.cs
+- ActiveIpSearchResultDto.cs
+- Related unit tests
+- Dependency injection and configuration
+
+Formulation API:
+- ActiveReactionController.cs
+- ActiveReactionService.cs
+- ActiveReactionService.cs in ServiceInterfaces
+- ActiveIpSearchDto.cs
+- ActiveIpSearchResultDto.cs
+- Database access and repository implementation
+- Related unit tests
+- Swagger configuration
+
+Compare our implementation with the existing
+FACTS API endpoints that call Formulation API.
+
+PHASE 3: VERIFY API INTEGRATION
+-------------------------------
+
+Trace the actual Active IP Search request from
+the FACTS API to the Formulation API.
+
+Verify:
+
+1. Is FACTS API calling the correct Formulation API URL?
+2. Is it using the existing generated
+   FormulationCoreRepoClient correctly?
+3. Why is ActiveReactionClient.Search.cs present?
+   Is it necessary, or does it duplicate existing
+   client functionality?
+4. Should FormulationCoreRepoClient.cs be regenerated
+   or updated?
+5. Are the request parameters and HTTP methods correct?
+6. Do the request and response DTOs match between
+   both repositories?
+7. Does the Formulation API endpoint return the
+   response expected by FACTS API?
+8. Is the endpoint registered and accessible through
+   Swagger?
+9. Is the HTTP 404 error caused by an incorrect URL,
+   missing endpoint, configuration, or another issue?
+
+Do not assume the 404 is caused by a missing endpoint.
+Verify the actual route and client implementation.
+
+PHASE 4: VERIFY SEARCH LOGIC
+----------------------------
+
+Check whether the search implementation meets
+the following requirements:
+
+1. Search by Input Active.
+2. Search by Output Active.
+3. Support searching with either field empty.
+4. When both fields are provided, apply AND logic.
+5. Support partial matching.
+6. Filter input and output using the correct Side values.
+7. Return distinct Active IP records.
+8. Sort results by Chemical Equation.
+9. Handle null, empty, and whitespace-only inputs.
+10. Return the correct response when no records match.
+
+Verify that the implementation handles these cases
+correctly in both repositories.
+
+PHASE 5: COMPARE CODING PATTERNS
+--------------------------------
+
+Compare our new implementation with the existing
+FACTS API integrations.
+
+Identify any differences in:
+
+- Controller structure
+- Service responsibilities
+- API client usage
+- DTO naming and structure
+- Dependency injection
+- Exception handling
+- Logging
+- Async methods
+- Configuration
+- Unit test patterns
+
+Distinguish between intentional differences and
+actual implementation problems.
+
+Do not recommend unnecessary refactoring.
+
+PHASE 6: TEST AND VALIDATE
+--------------------------
+
+Inspect the existing tests and determine whether
+they adequately cover the new functionality.
+
+Check:
+- Search with input only
+- Search with output only
+- Search with both filters
+- Search with both filters empty
+- Partial matching
+- No matching records
+- Duplicate records
+- Upstream API errors
+- Invalid requests
+
+Run the relevant builds and tests if possible.
+
+Do not claim that tests passed unless you actually
+ran them.
+
+PHASE 7: REPORT FINDINGS
+------------------------
+
+Do not modify any code during this review.
+
+Provide a detailed report with these sections:
+
+1. Existing API Integration Pattern
+   Explain how existing FACTS API endpoints
+   communicate with Formulation API.
+
+2. Active IP Search Architecture
+   Explain how our new implementation works.
+
+3. Comparison
+   Compare the existing implementation with
+   our new implementation.
+
+4. Correct Implementations
+   List the parts that correctly follow existing
+   patterns.
+
+5. Issues and Missing Steps
+   Identify incorrect code, architectural
+   inconsistencies, missing integration steps,
+   and potential bugs.
+
+6. FormulationCoreRepoClient
+   Explain whether it needs modification or
+   regeneration and provide evidence from the code.
+
+7. HTTP 404 Investigation
+   Identify the actual cause if it can be established.
+   Otherwise, list the remaining checks.
+
+8. Recommended Fixes
+   List only necessary changes, in priority order.
+
+9. Test Results
+   Report the actual build and test results.
+
+10. Final Verification Checklist
+    Provide a checklist of everything that must
+    be completed before merging.
+
+IMPORTANT RULES
+---------------
+
+- Inspect the actual source code in both repositories.
+- Follow existing coding patterns wherever possible.
+- Do not modify any files.
+- Do not create duplicate API clients or services.
+- Do not assume the generated client needs changes.
+- Do not make speculative claims about the 404 error.
+- Support findings with file names and method names.
+- Clearly distinguish confirmed problems from
+  potential risks.
+- If any repository or source file is inaccessible,
+  report that limitation.
+
+Start by identifying the existing FACTS API endpoints
+that call Formulation API. Use those as the reference
+for the entire review.
