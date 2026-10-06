@@ -1,1 +1,106 @@
-M#AboveAllElse#b
+Configure the local Angular UI to call the DEV FACTS API for
+local end-to-end testing of the Active IPR Search feature.
+
+IMPORTANT:
+- Do not modify production configuration.
+- Do not change committed DEV deployment configuration unless
+  the project already uses that file for local development.
+- Follow the existing Angular environment/configuration pattern.
+- Do not hardcode secrets, tokens, or credentials.
+- Do not change backend code.
+- Do not introduce a new configuration mechanism if one already exists.
+
+TASK:
+
+1. Inspect the existing Angular environment configuration:
+   - environment files
+   - app.module.ts
+   - webclient-api.service.ts
+   - MSAL/authentication configuration
+   - existing API_BASE_URL usage
+   - package/start scripts
+
+2. Determine how the application currently selects the API base URL
+   when running locally.
+
+3. Configure ONLY the local development environment so that:
+
+   Local Angular UI
+        |
+        v
+   DEV FACTS API
+        |
+        v
+   DEV Formulation API
+        |
+        v
+   DEV Database
+
+4. Reuse the existing API_BASE_URL mechanism.
+
+5. Do not hardcode the DEV URL directly inside
+   webclient-api.service.ts.
+
+6. Do not modify production or deployment environment values.
+
+7. Preserve the existing MSAL authentication/interceptor behavior.
+   The local UI must continue obtaining and attaching the required
+   authentication token to DEV API requests.
+
+8. Check whether the DEV FACTS API allows requests from the local
+   Angular origin. If CORS is a backend limitation, do not modify
+   the backend; report it clearly.
+
+9. Verify the Active IPR Search request specifically:
+
+   GET /api/ActiveReaction/search
+
+   Test:
+   - inputActive only
+   - outputActive only
+   - both parameters
+   - no results
+
+10. Verify the browser Network tab/request behavior:
+    - Correct DEV FACTS API URL
+    - Correct query parameters
+    - Authorization is handled by the existing auth mechanism
+    - HTTP response is received by Angular
+    - Results are displayed in the existing grid
+
+11. Do not disable SSL verification or bypass authentication
+    as a workaround.
+
+12. If the DEV API requires a different local configuration,
+    identify the existing supported configuration mechanism first.
+
+VALIDATION:
+
+Run the Angular application locally and verify the complete flow:
+
+    localhost:4200
+        ↓
+    DEV FACTS API
+        ↓
+    DEV Formulation API
+        ↓
+    DEV database
+        ↓
+    Search results displayed in UI
+
+IMPORTANT:
+Do not claim end-to-end success unless an actual authenticated
+request to the DEV FACTS API has been verified.
+
+After completing the work, report:
+
+1. Which configuration file was changed.
+2. How API_BASE_URL is resolved locally.
+3. The DEV API URL being targeted (do not expose secrets).
+4. Whether authentication worked.
+5. Whether CORS worked.
+6. Actual Active IPR Search request/response result.
+7. Any remaining blocker.
+8. Whether any files should be reverted before committing.
+
+Do not commit or push changes.
