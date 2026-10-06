@@ -1,419 +1,72 @@
-# FINAL UI REVIEW — Active IPR Search
-# Jira: FOREP-2713
-# Repository: Facts UI
-
-Perform a final, comprehensive code review of the Active IPR Search
-UI implementation.
-
-IMPORTANT:
-This is a REVIEW-ONLY task.
-Do NOT modify any files.
-Do NOT commit or push anything.
-Do NOT regenerate any API client.
-
-The local Angular UI has been successfully configured to call the
-DEV FACTS API, and the real Active IPR Search API flow has been
-verified manually.
-
-Review the implementation against the existing project architecture,
-coding patterns, API contract, and FOREP-2713 requirements.
-
-## 1. READ EXISTING PATTERNS FIRST
-
-Before reviewing:
-
-- Read all applicable repository instructions and skills.
-- Inspect the existing Active IPR Search implementation.
-- Inspect similar existing search pages/components.
-- Inspect `webclient-api.service.ts`.
-- Inspect the existing API/environment configuration.
-- Inspect MSAL/authentication/interceptor configuration.
-- Inspect existing Kendo/grid usage.
-- Inspect existing loading, error, toast, and validation patterns.
-- Inspect the complete Git diff.
-
-Do not judge the implementation against a new architecture.
-Use the existing project patterns as the standard.
-
-## 2. API INTEGRATION REVIEW
-
-Verify:
-
-GET /api/ActiveReaction/search
-
-Parameters:
-
-- inputActive — optional
-- outputActive — optional
-
-Check:
-
-- Correct endpoint.
-- Correct parameter names.
-- Correct parameter encoding.
-- Empty/undefined parameters are handled correctly.
-- No hardcoded API URL exists in the service/component.
-- Correct environment/API_BASE_URL mechanism is used.
-- Existing authentication/interceptor is reused.
-- No duplicate HTTP client or authentication mechanism was introduced.
-- Response is correctly typed.
-- Response mapping matches the actual DEV API response.
-
-Expected response fields:
-
-- activeIprId
-- chemicalEquation
-- inputActives
-- outputActives
-
-## 3. REAL DEV API FLOW
-
-The UI has been tested against the DEV backend.
-
-Review whether the implementation correctly supports:
-
-Local Angular UI
-    ↓
-DEV FACTS API
-    ↓
-FormulationCoreRepoClient
-    ↓
-DEV Formulation API
-    ↓
-DEV Database
-
-Check that there is no accidental localhost backend dependency
-remaining in the Active IPR Search implementation.
-
-Do NOT change DEV configuration during this review.
-
-## 4. SEARCH BEHAVIOR
-
-Verify all cases:
-
-### Input only
-Input Active populated, Output Active empty.
-
-Expected:
-- API called with inputActive.
-- Results displayed correctly.
-
-### Output only
-Input Active empty, Output Active populated.
-
-Expected:
-- API called with outputActive.
-- Results displayed correctly.
-
-### Both
-Both fields populated.
-
-Expected:
-- Both parameters sent.
-- Backend determines the AND search.
-- UI does not perform conflicting client-side filtering.
-
-### Both empty
-Expected:
-- API should not be called.
-- Existing validation pattern should be used.
-
-### Whitespace
-Expected:
-- Leading/trailing whitespace handled correctly.
-- Whitespace-only values treated as empty.
-
-### No results
-Expected:
-- Grid displays the existing "No records available" behavior.
-
-## 5. SEARCH RESULT GRID
-
-Verify:
-
-Columns:
-
-1. Chemical Equation
-2. Input Actives
-3. Output Actives
-
-Check:
-
-- Correct response-to-column mapping.
-- No hardcoded/mock data.
-- Correct empty-state behavior.
-- Existing Kendo/grid conventions are followed.
-- Existing sorting/display behavior is preserved.
-- Long text does not break the layout.
-- Existing styling has not been unnecessarily changed.
-
-## 6. SEARCH / CLEAR / LOADING
-
-Review:
-
-### Search
-- Correctly triggers API call.
-- Duplicate searches are prevented appropriately.
-- Loading state is displayed correctly.
-
-### Clear
-- Clears both input fields.
-- Clears search results.
-- Clears validation/errors.
-- Cancels pending requests if the existing architecture supports it.
-
-### Loading
-- Starts before API request.
-- Ends on success.
-- Ends on error.
-- Cannot leave the page permanently loading.
-
-## 7. ERROR HANDLING
-
-Check actual implementation for:
-
-- 400
-- 401
-- 403
-- 404
-- 500
-- Network failure
-- Empty response
-- null response
-- malformed/unexpected response
-
-Verify the UI follows existing project error/toast patterns.
-
-IMPORTANT:
-Do not silently convert an invalid API response into an apparently
-successful empty result unless that is explicitly the existing
-application convention.
-
-## 8. STALE DATA / RACE CONDITIONS
-
-Pay special attention to this previously identified issue:
-
-Search A succeeds
-    ↓
-Results A displayed
-
-Search B starts
-    ↓
-Search B fails
-
-Verify that Results A are not incorrectly presented as the result
-of Search B.
-
-Also check:
-
-- Older requests cannot overwrite newer results.
-- Clear cannot be followed by an old response repopulating the grid.
-- Component destruction does not leave active subscriptions.
-
-## 9. EXISTING FUNCTIONALITY
-
-Verify that the implementation did not break:
-
-- Create New Active IPR navigation.
-- Existing Active IPR page routing.
-- Existing page layout.
-- Existing navigation.
-- Existing authentication.
-- Existing common components.
-
-Do not treat the existing Active IPR details-page fixture behavior
-as a defect introduced by this ticket unless this ticket explicitly
-requires changing it.
-
-## 10. CODE QUALITY
-
-Check:
-
-- Existing Angular coding conventions.
-- Existing dependency injection pattern.
-- Existing RxJS pattern.
-- Proper subscription cleanup.
-- Correct TypeScript types.
-- No unnecessary `any`.
-- No duplicated API logic.
-- No duplicated DTO/interface definitions if generated types exist.
-- No hardcoded URLs.
-- No hardcoded search results.
-- No unnecessary dependencies.
-- No unrelated refactoring.
-- No unrelated configuration changes.
-
-## 11. ENVIRONMENT / CONFIGURATION
-
-Because local testing now targets DEV:
-
-Verify:
-
-- DEV API URL is configured through the existing environment mechanism.
-- The URL is not hardcoded inside the component/service.
-- No secrets or tokens are committed.
-- Production configuration was not changed unnecessarily.
-- Local-only configuration changes are clearly separated from
-  production/deployment configuration.
-
-## 12. TEST REVIEW
-
-Inspect existing tests and verify coverage for:
-
-- Input-only search.
-- Output-only search.
-- Both parameters.
-- Empty inputs.
-- Whitespace.
-- Successful response.
-- Multiple results.
-- No results.
-- API error.
-- Loading state.
-- Clear.
-- Stale-result scenario.
-- Create New Active IPR navigation.
-
-Run the focused tests and Angular build if possible.
-
-Report ACTUAL results only.
-
-Do not claim tests passed if they were not executed.
-
-## 13. ACTUAL DEV SMOKE TEST
-
-If the DEV API and local UI are currently available,
-perform/read the available evidence for:
-
-1. Input-only search.
-2. Output-only search.
-3. Both-input search.
-4. No-results search.
-5. Clear.
-
-Verify the browser Network request and response where possible.
-
-Do not bypass authentication or SSL validation.
-
-Clearly separate:
-- Code review findings.
-- Automated test results.
-- Manual DEV smoke-test results.
-
-## 14. GIT DIFF REVIEW
-
-Review every changed file.
-
-Classify each file:
-
-KEEP — required for FOREP-2713
-REVIEW — potentially related but needs confirmation
-REVERT — unrelated to this ticket
-
-Pay particular attention to:
-- `webclient-api.service.ts`
-- `actives-ipr.component.ts`
-- `actives-ipr.component.spec.ts`
-- `app.module.ts`
-- environment files
-
-Do not revert anything during this review.
-
-## 15. FINAL REPORT
-
-Return exactly these sections:
-
-### 1. Executive Summary
-
-State:
-- Overall status: READY / READY WITH FIXES / NOT READY
-- Critical blockers
-- Main concerns
-
-### 2. API Integration
-
-PASS / FAIL / NOT VERIFIED for each check.
-
-### 3. Search Behavior
-
-PASS / FAIL / NOT VERIFIED for:
-- Input only
-- Output only
-- Both
-- Empty
-- Whitespace
-- No results
-
-### 4. UI/Grid
-
-PASS / FAIL / NOT VERIFIED.
-
-### 5. Error & Lifecycle Handling
-
-PASS / FAIL / NOT VERIFIED.
-
-### 6. DEV Smoke Test
-
-List the actual scenarios tested and results.
-
-### 7. Automated Tests
-
-Report:
-- Test command
-- Passed
-- Failed
-- Skipped
+Implement ONLY the confirmed fixes from the final review.
+
+1. Fix malformed-response handling in:
+   actives-ipr.component.ts
+
+   Current problem:
+   Validation checks only activeIprId.
+
+   Update validation so that an API response is considered valid
+   only when the required response/display fields conform to the
+   authoritative API contract:
+
+   - activeIprId
+   - chemicalEquation
+   - inputActives
+   - outputActives
+
+   Respect legitimate nullable fields from the actual Swagger
+   contract.
+
+   Do not introduce unnecessarily strict validation that rejects
+   valid API responses.
+
+2. Add regression tests for malformed responses:
+   - invalid activeIprId
+   - invalid display field types
+   - malformed object
+   - malformed array
+   - valid response
+   - null values where Swagger permits them
+
+3. Fix Clear behavior:
+   When Clear is clicked:
+   - clear input/output values
+   - clear search results
+   - clear validation state
+   - dismiss search-owned error/validation notifications
+   - cancel pending search if supported by the existing pattern
+
+   Follow the existing notification/toast mechanism.
+   Do not introduce a new notification system.
+
+4. Review the API contract:
+   Confirm that webclient-api.service.ts uses the exact
+   parameter names and response contract from the current
+   DEV Swagger.
+
+   Do not change casing merely for style.
+   Change it only if the actual API contract requires it.
+
+5. Add/update focused unit tests for all changed behavior.
+
+6. Run:
+   - Active IPR component tests
+   - Angular build
+
+7. Do NOT:
+   - modify backend code
+   - regenerate FormulationCoreRepoClient
+   - change unrelated components
+   - change the UI design
+   - change the existing DEV API configuration
+   - commit or push
+
+After implementation report:
+- Files changed
+- Exact fixes
+- Tests passed/failed
 - Build result
+- Any remaining concerns
 
-### 8. Git Diff Review
-
-List:
-- Files to keep
-- Files needing review
-- Unrelated files
-
-### 9. Issues
-
-For every issue:
-
-Severity:
-P0 / P1 / P2 / P3
-
-File:
-Line:
-
-Problem:
-Why it matters:
-
-Recommendation:
-
-Clearly distinguish confirmed defects from recommendations.
-
-### 10. Final Recommendation
-
-Answer one of:
-
-READY TO COMMIT
-
-or
-
-READY AFTER FIXING THE FOLLOWING:
-1. ...
-2. ...
-
-or
-
-NOT READY:
-1. ...
-
-IMPORTANT FINAL RULES:
-
-- Review only.
-- Do not modify files.
-- Do not regenerate clients.
-- Do not commit.
-- Do not push.
-- Do not invent test results.
-- Do not report stylistic preferences as defects.
-- Base findings on actual source code, tests, and available DEV
-  API evidence.
+Do not claim success without running the tests and build.
