@@ -1,72 +1,85 @@
-Implement ONLY the confirmed fixes from the final review.
+Perform a diagnostic-only review of ALL current Problems related
+to the Active IPR page after the FOREP-2713 implementation.
 
-1. Fix malformed-response handling in:
-   actives-ipr.component.ts
+IMPORTANT:
+Do NOT modify any files yet.
+Do NOT suppress errors.
+Do NOT use `any` to hide TypeScript errors.
+Do NOT change TypeScript strictness.
+Do NOT regenerate any API client.
 
-   Current problem:
-   Validation checks only activeIprId.
+Focus on:
+- actives-ipr.component.ts
+- actives-ipr.component.html
+- actives-ipr.component.scss
+- actives-ipr.component.spec.ts
+- webclient-api.service.ts
+- app.module.ts
+- any directly related Active IPR files
 
-   Update validation so that an API response is considered valid
-   only when the required response/display fields conform to the
-   authoritative API contract:
+TASK:
 
-   - activeIprId
-   - chemicalEquation
-   - inputActives
-   - outputActives
+1. Run the Angular TypeScript/build validation and inspect the
+   complete Problems output.
 
-   Respect legitimate nullable fields from the actual Swagger
-   contract.
+2. Collect EVERY error/warning related to the Active IPR
+   implementation.
 
-   Do not introduce unnecessarily strict validation that rejects
-   valid API responses.
+3. For each problem classify it as:
 
-2. Add regression tests for malformed responses:
-   - invalid activeIprId
-   - invalid display field types
-   - malformed object
-   - malformed array
-   - valid response
-   - null values where Swagger permits them
+   A. Introduced by FOREP-2713
+   B. Pre-existing
+   C. Cascading error caused by another error
+   D. Unrelated to Active IPR
 
-3. Fix Clear behavior:
-   When Clear is clicked:
-   - clear input/output values
-   - clear search results
-   - clear validation state
-   - dismiss search-owned error/validation notifications
-   - cancel pending search if supported by the existing pattern
+4. For every A/B/C issue provide:
+   - File
+   - Line
+   - Error/warning
+   - Root cause
+   - Whether it blocks build/runtime
+   - Recommended fix
 
-   Follow the existing notification/toast mechanism.
-   Do not introduce a new notification system.
+5. Specifically inspect:
+   - GridDataResult undefined/null typing
+   - Observable return types
+   - API response typing
+   - nullable fields
+   - `undefined` vs `null`
+   - incorrect property initialization
+   - template type errors
+   - subscription types
+   - unused variables/imports
+   - strict TypeScript errors
+   - generated API/client type compatibility
+   - test typing errors
+   - Kendo Grid types
+   - Angular template errors
 
-4. Review the API contract:
-   Confirm that webclient-api.service.ts uses the exact
-   parameter names and response contract from the current
-   DEV Swagger.
+6. Determine whether the large Problems count is caused by
+   one or more cascading errors.
 
-   Do not change casing merely for style.
-   Change it only if the actual API contract requires it.
+7. Compare the current implementation with the existing
+   Active IPR/component patterns before recommending changes.
 
-5. Add/update focused unit tests for all changed behavior.
+DO NOT FIX ANYTHING YET.
 
-6. Run:
-   - Active IPR component tests
-   - Angular build
+FINAL OUTPUT:
 
-7. Do NOT:
-   - modify backend code
-   - regenerate FormulationCoreRepoClient
-   - change unrelated components
-   - change the UI design
-   - change the existing DEV API configuration
-   - commit or push
+Create a table:
 
-After implementation report:
-- Files changed
-- Exact fixes
-- Tests passed/failed
-- Build result
-- Any remaining concerns
+| Severity | File | Line | Problem | Category | Root Cause | Blocks Build? | Recommended Fix |
+|----------|------|------|---------|----------|------------|---------------|-----------------|
 
-Do not claim success without running the tests and build.
+Then provide:
+
+1. Total Problems found.
+2. Problems introduced by FOREP-2713.
+3. Pre-existing problems.
+4. Cascading problems.
+5. Unrelated problems.
+6. Which problems MUST be fixed before commit.
+7. Which warnings can safely remain.
+
+Most importantly, do not treat all 160 Problems as independent
+issues. Identify the root errors first.
