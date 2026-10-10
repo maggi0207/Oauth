@@ -1,9 +1,39 @@
-Do not assume the relationship or invent a database table. Inspect the existing EF models, DbContext, database schema, migrations, and services to identify how a formulation references an Active IPR.
+## FOREP-2703 — Implement Active IPR DELETE API Using Existing Patterns
 
-The models inspected so far only show `active_ipr_active` and reactant-definition child relationships. Search the entire repository for `ActiveIprId`, `active_ipr_id`, formulation-to-active relationships, and existing usage checks.
+First, investigate the existing Active IPR Search and details implementations in the FACTS API repository. Then implement the DELETE endpoint by following the established coding and database-access patterns.
 
-Determine the actual relationship and whether the database can reliably identify an Active IPR currently in use.
+### 1. Trace the existing implementation
+- Trace `ActiveReactionController` → `ActiveReactionService` → existing EF Core `DbContext` and entity mappings.
+- Identify how Active IPR Search retrieves records and how the selected `activeIprId` is used by the details GET endpoint.
+- Inspect entity relationships, foreign keys, migrations, and existing deletion patterns.
+- Determine how the database represents whether an Active IPR is used by a formulation.
 
-If the relationship cannot be established from the code or schema, stop and report the exact missing information rather than implementing a guessed check.
+### 2. Implement the DELETE endpoint
+- Follow existing API conventions for `DELETE /api/ActiveReaction/{activeIprId}`.
+- Reuse the existing database connection, DbContext, entities, dependency injection, authorization, and error-handling patterns.
+- Accept the selected record's ID; do not identify the deletion target through search criteria.
+- Enforce the requirement that only the Lead Chemist can delete an Active IPR, using the established authorization pattern.
+- Return appropriate responses for successful deletion, not-found records, authorization failures, and records that cannot be deleted because they are in use.
 
-For deletion, preserve the existing database conventions, reject deletion when the Active IPR is in use, and never cascade-delete unrelated formulation data.
+### 3. Preserve data integrity
+- Do not invent a formulation-usage query based only on shared active ingredients.
+- Verify the actual relationship between a formulation and a specific Active IPR.
+- Inspect foreign-key constraints and child records before deciding the deletion strategy.
+- Never cascade-delete formulation or reaction-definition data without an approved rule.
+- If the usage relationship or safe deletion behavior cannot be established from the repository, stop and report the precise missing information rather than implementing a guessed check.
+
+### 4. Follow existing project conventions
+- Reuse the existing service interface and controller patterns.
+- Keep the implementation minimal; avoid duplicate database connections, unnecessary repository abstractions, and unrelated refactoring.
+- Add focused tests for authorization, successful deletion, missing records, in-use records, and database constraint failures.
+- Build the API and run relevant tests.
+
+### 5. Final report
+Summarize:
+1. The existing search-to-details database flow and the entities involved.
+2. The verified relationship used to determine whether deletion is safe.
+3. Files changed and endpoint behavior.
+4. Tests and build results.
+5. Any unresolved relationship or deletion-policy questions.
+
+Do not modify the Angular UI or regenerate API clients as part of this backend-only task.
