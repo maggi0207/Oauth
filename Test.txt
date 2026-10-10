@@ -1,39 +1,22 @@
-## FOREP-2703 — Implement Active IPR DELETE API Using Existing Patterns
+Continue the FOREP-2703 investigation.
 
-First, investigate the existing Active IPR Search and details implementations in the FACTS API repository. Then implement the DELETE endpoint by following the established coding and database-access patterns.
+Do not implement the DELETE endpoint yet.
 
-### 1. Trace the existing implementation
-- Trace `ActiveReactionController` → `ActiveReactionService` → existing EF Core `DbContext` and entity mappings.
-- Identify how Active IPR Search retrieves records and how the selected `activeIprId` is used by the details GET endpoint.
-- Inspect entity relationships, foreign keys, migrations, and existing deletion patterns.
-- Determine how the database represents whether an Active IPR is used by a formulation.
+Trace the complete existing workflow for Active IPRs and formulations across both repositories:
 
-### 2. Implement the DELETE endpoint
-- Follow existing API conventions for `DELETE /api/ActiveReaction/{activeIprId}`.
-- Reuse the existing database connection, DbContext, entities, dependency injection, authorization, and error-handling patterns.
-- Accept the selected record's ID; do not identify the deletion target through search criteria.
-- Enforce the requirement that only the Lead Chemist can delete an Active IPR, using the established authorization pattern.
-- Return appropriate responses for successful deletion, not-found records, authorization failures, and records that cannot be deleted because they are in use.
+1. Follow the existing Active IPR Search, details GET, and save/update flows.
+2. Identify how a formulation selects, references, loads, or persists an Active IPR, if such a workflow exists.
+3. Inspect existing services, controllers, EF Core relationships, entities, migrations, and database queries. Search for any indirect relationship that could identify a specific Active IPR used by a formulation.
+4. Distinguish a formulation using an individual Active IPR from a formulation merely containing the same active ingredients.
+5. Determine whether the existing schema can reliably establish whether the selected `activeIprId` is in use.
+6. Check existing deletion conventions and whether child records are deleted, retained, or prevented from deletion.
 
-### 3. Preserve data integrity
-- Do not invent a formulation-usage query based only on shared active ingredients.
-- Verify the actual relationship between a formulation and a specific Active IPR.
-- Inspect foreign-key constraints and child records before deciding the deletion strategy.
-- Never cascade-delete formulation or reaction-definition data without an approved rule.
-- If the usage relationship or safe deletion behavior cannot be established from the repository, stop and report the precise missing information rather than implementing a guessed check.
+Reuse the existing database access patterns and connections. Do not invent a new relationship, usage query, database connection, or deletion policy.
 
-### 4. Follow existing project conventions
-- Reuse the existing service interface and controller patterns.
-- Keep the implementation minimal; avoid duplicate database connections, unnecessary repository abstractions, and unrelated refactoring.
-- Add focused tests for authorization, successful deletion, missing records, in-use records, and database constraint failures.
-- Build the API and run relevant tests.
+Return:
+- The exact workflow and relevant files/methods.
+- The actual entity/table/column relationships found.
+- Whether a safe usage check is possible with the existing schema.
+- The remaining business decision, if any, needed to implement deletion safely.
 
-### 5. Final report
-Summarize:
-1. The existing search-to-details database flow and the entities involved.
-2. The verified relationship used to determine whether deletion is safe.
-3. Files changed and endpoint behavior.
-4. Tests and build results.
-5. Any unresolved relationship or deletion-policy questions.
-
-Do not modify the Angular UI or regenerate API clients as part of this backend-only task.
+Do not modify files until the investigation is complete. If the relationship cannot be established, explain precisely what is missing.
