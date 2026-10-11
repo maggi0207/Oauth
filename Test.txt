@@ -1,22 +1,58 @@
-Continue the FOREP-2703 investigation.
+## Copilot Prompt — Investigate Reactant Records and Active IPR Deletion
 
-Do not implement the DELETE endpoint yet.
+I'm working on **FOREP-2703: Delete Active IPR**. Before implementing the DELETE API, I need to understand the `Reactant` entity, its relationship with Active IPR, and the correct deletion behavior.
 
-Trace the complete existing workflow for Active IPRs and formulations across both repositories:
+### 1. Inspect the Reactant entity
+- Locate the `Reactant` entity/model, database table, repository, service, and related DTOs.
+- List its actual properties and explain what each property represents.
+- Identify its primary key, foreign keys, navigation properties, and relationships.
+- Find the EF Core configurations, migrations, or database constraints defining these relationships.
+- Determine whether each Reactant record belongs to one Active IPR or can be shared by multiple Active IPRs.
 
-1. Follow the existing Active IPR Search, details GET, and save/update flows.
-2. Identify how a formulation selects, references, loads, or persists an Active IPR, if such a workflow exists.
-3. Inspect existing services, controllers, EF Core relationships, entities, migrations, and database queries. Search for any indirect relationship that could identify a specific Active IPR used by a formulation.
-4. Distinguish a formulation using an individual Active IPR from a formulation merely containing the same active ingredients.
-5. Determine whether the existing schema can reliably establish whether the selected `activeIprId` is in use.
-6. Check existing deletion conventions and whether child records are deleted, retained, or prevented from deletion.
+### 2. Trace the application workflow
+Search the entire solution for:
+- `Reactant` entity usage and CRUD operations.
+- Creation and update of Reactant records when an Active IPR is saved.
+- Loading Reactant data on the Active IPR details page.
+- Reactant data returned by the Active IPR Search and Details APIs.
+- Existing delete implementations for Active IPR, Composition, or similar entities.
 
-Reuse the existing database access patterns and connections. Do not invent a new relationship, usage query, database connection, or deletion policy.
+Show the actual code references and explain how the records are created, loaded, updated, and deleted.
 
+### 3. Verify deletion constraints
+Inspect the actual database relationships and determine:
+- Whether deleting an Active IPR would fail if its associated Reactant records remain.
+- Whether Reactant records have dependent records of their own.
+- Whether deleting Reactant records could affect other Active IPRs or application workflows.
+- Whether the project uses hard deletion, soft deletion, or another pattern for similar entities.
+
+**Do not assume that a Reactant record should be deleted just because it is associated with an Active IPR.** Verify the relationship and whether it is shared.
+
+### 4. Check the “Active IPR is in use” requirement
+For FOREP-2703, the requirement is to prevent deletion when the selected Active IPR is in use.
+
+- Trace how a formulation references or uses an Active IPR.
+- Search entity relationships, database schema, queries, services, and API workflows for a reliable link to the specific `activeIprId`.
+- Check whether the existing `UseActiveIpr` flag or any other field actually identifies the selected Active IPR.
+- Do not treat shared ingredients, reactants, or an unrelated flag as proof that a particular Active IPR is in use.
+
+If no reliable relationship or rule exists in the current codebase, explicitly report that gap and identify what needs clarification from the domain or database owner.
+
+### 5. Provide a recommendation before changing code
 Return:
-- The exact workflow and relevant files/methods.
-- The actual entity/table/column relationships found.
-- Whether a safe usage check is possible with the existing schema.
-- The remaining business decision, if any, needed to implement deletion safely.
+1. The `Reactant` entity’s actual purpose and properties.
+2. Its relationship with Active IPR, supported by code and schema references.
+3. The deletion constraints and possible impact on other records.
+4. The existing deletion pattern that best matches this feature.
+5. The verified method, if one exists, to determine whether the selected Active IPR is in use.
+6. Any unresolved business or schema questions.
+7. A proposed safe deletion sequence, including transaction and authorization considerations.
 
-Do not modify files until the investigation is complete. If the relationship cannot be established, explain precisely what is missing.
+### Important constraints
+- **Investigation only — do not modify code, database schema, migrations, or tests.**
+- Do not invent properties, relationships, or usage checks.
+- Do not introduce cascade deletion or delete child records without verified ownership and business approval.
+- Enforce the Lead Chemist-only deletion requirement at the API/service authorization level; hiding the UI button alone is insufficient.
+- Clearly distinguish verified findings from assumptions and unresolved questions.
+
+Finish with a concise summary that I can share with my manager before implementing the DELETE API.
