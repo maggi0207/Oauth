@@ -1,12 +1,5 @@
-Review the current FOREP-2703 changes.
+Hi, I'm working on the Active IPR deletion API (FOREP-2703) and need some clarification on the database relationship.
 
-The DELETE endpoint is currently a guarded placeholder that returns HTTP 501 for an existing Active IPR because the formulation-usage relationship is unresolved.
+I couldn't find a direct link between a specific `ActiveIprId` and formulation records in the current schema. Do you know how we can determine whether an Active IPR is being used by a formulation, or if there's an existing relationship or business rule we should follow?
 
-1. Verify that the current changes compile and that all existing tests still pass.
-2. Confirm that no database deletion or usage check has been implemented.
-3. Do not treat the ticket as complete or return a success response without performing the actual deletion.
-4. Identify exactly what is needed to finish the endpoint, including the missing formulation-to-Active-IPR usage relationship.
-5. Preserve the existing changes and unrelated working-tree modifications.
-6. Report whether the current placeholder should remain temporarily or whether the endpoint should be withheld until the usage rule is agreed upon.
-
-Do not invent a usage check or modify the database schema without approval.
+This will help us implement the deletion safely without accidentally removing an Active IPR that's still in use.
