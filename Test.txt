@@ -1,99 +1,12 @@
-# Copilot Prompt — FOREP-2703: Active IPR DELETE API
+Review the current FOREP-2703 changes.
 
-Continue the implementation of FOREP-2703 (FACTS Stoller: API Delete) in the existing FACTS API and follow the repository's established coding patterns.
+The DELETE endpoint is currently a guarded placeholder that returns HTTP 501 for an existing Active IPR because the formulation-usage relationship is unresolved.
 
-## 1. Business requirements
+1. Verify that the current changes compile and that all existing tests still pass.
+2. Confirm that no database deletion or usage check has been implemented.
+3. Do not treat the ticket as complete or return a success response without performing the actual deletion.
+4. Identify exactly what is needed to finish the endpoint, including the missing formulation-to-Active-IPR usage relationship.
+5. Preserve the existing changes and unrelated working-tree modifications.
+6. Report whether the current placeholder should remain temporarily or whether the endpoint should be withheld until the usage rule is agreed upon.
 
-- Add a `DELETE /api/ActiveReaction/{activeIprId}` endpoint.
-- Only Lead Chemist users should be authorized to delete an Active IPR.
-- If the Active IPR does not exist, return the appropriate not-found response.
-- If the Active IPR is in use, deletion must be blocked with an appropriate error.
-- If it is not in use, permanently delete the Active IPR and its associated child records.
-- Gary has confirmed that soft deletion is unnecessary. An unused Active IPR can be deleted and recreated later if needed.
-
-## 2. Investigate the existing database relationships first
-
-Before implementing the usage check, inspect the existing code and database model.
-
-Trace the existing Active IPR Search and details flows:
-
-- `ActiveReactionController`
-- `ActiveReactionService`
-- `IActiveReactionService`
-- `ActiveReactionClient` and the existing FACTS-to-Formulation API integration
-- `ApplicationDbContext`
-- Relevant EF entities, migrations, foreign keys, and existing validation logic
-
-The Active IPR parent is stored in `active_ipr`. Its associated records are stored in `active_ipr_active` and `reactant`.
-
-Investigate whether the existing active ingredient relationships can establish whether a specific Active IPR is used by a formulation.
-
-The current investigation found that formulation workflows reference the legacy `acid_equivalent_reaction` relationship and do not have an identified, reliable direct relationship to a specific `active_ipr_id`.
-
-Do not assume that any of the following proves usage of a specific Active IPR:
-- A shared `active_id`.
-- An ingredient appearing in a formulation.
-- The `UseActiveIpr` flag by itself.
-- A matching reactant or active ingredient name.
-
-First determine whether existing code provides a defensible way to establish this relationship.
-
-## 3. Reuse the existing database access pattern
-
-- Follow the database access pattern used by the existing Active IPR Search and details APIs.
-- FACTS currently delegates Active IPR persistence operations to the Formulation API through the generated client. Trace this architecture and place the database operation in the correct service.
-- Do not introduce a separate database connection or a duplicate persistence mechanism.
-- Follow existing controller, service, DTO, authorization, exception-handling, logging, and transaction patterns.
-- Do not modify unrelated files or overwrite existing uncommitted changes.
-
-## 4. Implement deletion safely
-
-Inspect existing deletion implementations for other entities and reuse their established transaction and child-record handling patterns where appropriate.
-
-The Active IPR child foreign keys currently use `ON DELETE NO ACTION`. Therefore, determine the supported deletion sequence for `active_ipr_active`, `reactant`, and `active_ipr`.
-
-If deletion is confirmed safe:
-1. Load the requested Active IPR.
-2. Verify the required authorization.
-3. Apply the agreed usage check, if a reliable one exists.
-4. Delete the associated child records and parent within a single transaction, following existing repository conventions.
-5. Commit only when all required operations succeed.
-6. Roll back on failure and return consistent API errors.
-
-Never delete child records before confirming that the parent can safely be deleted.
-
-**Important:** Do not implement an invented or unreliable usage check just to complete the endpoint. If the current schema cannot determine whether a specific Active IPR is used by a formulation, document the exact limitation and the missing relationship. Do not silently allow deletion by treating an unverified check as proof that the IPR is unused.
-
-## 5. Authorization and permissions
-
-- Enforce Lead Chemist-only DELETE access through the existing backend authorization and permission-matrix mechanisms.
-- Preserve existing GET, POST, and PUT permissions for Chemist and Lead Chemist.
-- Update the permissions source and regenerate derived permission files using the repository's established process, if applicable.
-- Preserve existing Development-environment authorization behavior.
-
-## 6. Tests and verification
-
-Add or update tests covering:
-
-- Successful deletion of an unused Active IPR.
-- Active IPR not found.
-- Deletion blocked when the Active IPR is in use, if the relationship can be reliably established.
-- Unauthorized and insufficiently authorized requests.
-- Parent and child records deleted atomically.
-- Rollback when a database operation fails.
-- Existing GET, POST, PUT, and Search behavior remains unaffected.
-
-Run the relevant tests and build. Report any pre-existing failures separately from failures introduced by this change.
-
-## 7. Required final report
-
-Summarize:
-
-1. The existing database relationship found, with actual table and column names.
-2. Whether the formulation-usage check can be implemented reliably with the current schema.
-3. Files changed and why.
-4. Endpoint behavior and authorization changes.
-5. Tests and build results.
-6. Any remaining blocker requiring confirmation from Gary or the database/domain owner.
-
-Start by investigating the existing relationships and deletion patterns. Implement only what is supported by the existing model and confirmed requirements. Do not modify the Angular UI or regenerate its API client as part of this API-only task.
+Do not invent a usage check or modify the database schema without approval.
