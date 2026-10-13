@@ -1,741 +1,355 @@
-# SDI FORECAST AGENT — PRODUCTION INTEGRATION
-
-The standalone SDI Forecast Routing Agent is now working correctly.
-
-It supports:
-- Forecast Outlook
-- Forecast Accuracy
-- PID
-- Product Family
-- Business Unit (BU)
-- Product Life Cycle
-- LLM-based intent classification and routing
-- Skill selection
-- MCP tool execution
-- Response synthesis
-
-Now migrate this working implementation into our existing SDI
-application architecture.
-
-The objective is to replace the standalone CLI workflow with
-an interactive chatbot integrated into our existing UI.
-
-IMPORTANT:
-Do not rebuild the agent from scratch.
-Do not lose any working functionality.
-Reuse the existing CLI implementation as the functional reference.
-
-==================================================
-1. EXISTING REPOSITORIES
-==================================================
-
-Inspect all three existing repositories:
-
-1. Runtime Agent:
-   ssc-planning-sdi-rt
-
-2. Backend Service:
-   ssc-planning-sdi-ser
-
-3. UI:
-   ssc-planning-sdi-ui
-
-Also inspect the completed standalone Forecast Routing Evaluator
-and its working implementation.
-
-Understand the current architecture and coding conventions
-before making changes.
-
-Do not assume the repositories have the same structure as
-previous versions.
-
-==================================================
-2. OBJECTIVE
-==================================================
-
-Move the working standalone Forecast Agent into the existing
-SDI Runtime Agent.
-
-The final architecture must be:
-
-                    USER
-                     |
-                     v
-              SDI Angular UI
-                     |
-                     v
-             SDI Backend Service
-                     |
-               Proxy Layer
-                     |
-                     v
-             SDI Runtime Agent
-                     |
-                     v
-             Agent Orchestrator
-                     |
-              Intent Detection
-                     |
-                     v
-              Skill Selection
-                     |
-          +----------+----------+
-          |                     |
-          v                     v
-    Forecast Outlook     Forecast Accuracy
-          |                     |
-          +----------+----------+
-                     |
-                     v
-               MCP Execution
-                     |
-                     v
-             Response Synthesis
-                     |
-                     v
-             Runtime Agent
-                     |
-                     v
-             Backend Service
-                     |
-                     v
-                Angular UI
-                     |
-                     v
-             Interactive Chat
+Task: Implement Reference-Based Agent UI with Real-Time Execution Streaming and Animations
 
-Use the actual architecture and existing components wherever
-they are already implemented.
+Objective
 
-==================================================
-3. RESPONSIBILITY OF EACH REPOSITORY
-==================================================
+Use the attached UI reference image as the target design for the existing SDI Chat UI.
 
-A. RUNTIME AGENT
+Implement a modern, minimal, animated agent experience that shows what the agent is actually doing while processing a request. The interface must display real execution stages, selected skill and procedure, parameter validation, actual MCP tool execution, result processing, and incremental answer generation.
 
-The Runtime Agent must own all agent-related logic.
+The reference image defines the intended visual experience. The actual runtime events define what the UI is allowed to display.
 
-Move or integrate the working CLI agent logic into this repository.
+Do not rebuild the backend architecture or change business logic. First inspect the current implementation, identify the existing event stream, and reuse it. Make only the changes necessary to deliver the experience.
 
-It must handle:
+1. Inspect the Current Implementation
 
-- LLM client initialization
-- Configurable LLM model selection
-- Conversation state
-- Intent classification
-- Skill selection
-- Skill execution
-- MCP tool selection
-- MCP execution
-- MCP response processing
-- Response synthesis
-- Error handling
-- Retry handling, where appropriate
-- Streaming responses, if supported by the existing architecture
+Inspect the existing UI, service, and runtime streaming path:
 
-The Runtime Agent must be the single source of truth for
-agent orchestration and reasoning.
+* Angular chat container and assistant message components.
+* Chat API service and SSE parser.
+* Existing routing-workflow/activity component.
+* Express BFF streaming endpoint.
+* FastAPI service streaming proxy.
+* Runtime progress event implementation.
+* Orchestrator, skill selector, execution adapter, MCP invocation, and response generator.
+* Existing loading stages, timers, animations, and response rendering.
 
-Do not duplicate this logic in the backend service or UI.
+Trace the actual flow:
 
-B. BACKEND SERVICE
+User Query
+    |
+    v
+Angular Chat UI
+    |
+    v
+Express BFF
+    |
+    v
+Service SSE Proxy
+    |
+    v
+Runtime Agent
+    |
+    +--> Skill Selection
+    +--> Procedure / Parameter Validation
+    +--> Approved Execution
+    +--> MCP Tool Call
+    +--> Result Processing
+    +--> Response Generation
+    |
+    v
+Real SSE Events
+    |
+    v
+Angular Activity Timeline + Answer Stream
 
-The backend service must act as the proxy/API layer between
-the Angular UI and the Runtime Agent.
+Determine which stages already emit events, which events are being dropped or buffered, and which UI states are hardcoded.
 
-It must handle:
+Do not start by creating new progress stages before inspecting the existing event protocol.
 
-- UI-facing API endpoints
-- Forwarding chat requests to the Runtime Agent
-- Forwarding streaming responses to the UI
-- Authentication and authorization, following existing patterns
-- Request validation
-- Correlation/request IDs
-- Error propagation
-- Appropriate logging
-- Timeouts and connection handling
+2. Implement the Real-Time Activity Lifecycle
 
-Do not implement LLM reasoning, skill selection, or MCP
-orchestration in this service.
+Use the following stages as the target user experience. Map them to existing backend events wherever possible.
 
-Do not make the UI call the Runtime Agent directly if the
-existing architecture requires the service as the proxy.
+Stage 1 — Request received
 
-C. ANGULAR UI
+Immediately display a compact assistant activity indicator:
 
-Integrate an interactive chatbot into the existing SDI UI.
-
-Reuse the existing UI components, design system, styling,
-routing, and coding patterns.
-
-Do not create an unrelated standalone frontend.
-
-==================================================
-4. MIGRATE THE WORKING CLI AGENT
-==================================================
-
-First, analyze the completed CLI implementation.
-
-Identify the modules responsible for:
-
-- LLM calls
-- Intent detection
-- Skill routing
-- Forecast Outlook
-- Forecast Accuracy
-- Dimension extraction
-- MCP tool selection
-- Query construction
-- MCP execution
-- Response synthesis
-- Configuration
-- Error handling
+Thinking…
 
-Map each module to the appropriate Runtime Agent component.
-
-Reuse existing Runtime Agent components wherever possible.
-
-Avoid creating duplicate orchestrators, LLM clients,
-MCP clients, or routing layers.
-
-Preserve the working behavior of the CLI.
-
-Do not introduce unnecessary abstractions or redesign
-the agent without a clear technical reason.
+Once request acceptance is confirmed, show:
 
-==================================================
-5. FORECAST SKILLS
-==================================================
+Request received
 
-Initially, support only these two skills:
+The initial indicator may represent a waiting/connecting state before the first event arrives, but it must not imply that the agent has already started a specific operation.
 
-SKILL 1: FORECAST OUTLOOK
+Stage 2 — Understanding the request
 
-Supported dimensions:
-- PID
-- Product Family
-- BU
-- Product Life Cycle
+When actual request interpretation begins, display:
 
-SKILL 2: FORECAST ACCURACY
+Understanding your request…
 
-Supported dimensions:
-- PID
-- Product Family
-- BU
-- Product Life Cycle
+Optional explanatory text:
 
-Preserve the actual mappings and MCP tool names from
-the working CLI and the existing Runtime Agent.
+Identifying the relevant capability and required parameters.
 
-Do not invent new MCP tools or SQL queries.
+Show a subtle animated ring or dots while this operation is genuinely in progress.
 
-Do not expand the scope to Demand, Contracts, Install Base,
-Spares, Scrap, or other capabilities.
+Do not invent separate LLM-thinking stages if the runtime does not expose them.
 
-==================================================
-6. AGENT ORCHESTRATION
-==================================================
+Stage 3 — Skill selection and validation
 
-Implement the agent flow using the existing Runtime Agent
-orchestration framework and coding conventions.
+When the selection result arrives, display the actual skill and procedure:
 
-Expected logical flow:
+✓ Skill selected
+Forecast
+Procedure: Outlook
 
-User Message
-     |
-     v
-Conversation State
-     |
-     v
-Intent Classification
-     |
-     v
-Dimension and Entity Extraction
-     |
-     v
-Skill Selection
-     |
-     v
-Skill Execution
-     |
-     v
-MCP Tool Selection
-     |
-     v
-MCP Execution
-     |
-     v
-Response Synthesis
-     |
-     v
-Final Answer
+Then show the real validation stages, when individually available:
 
-Use the existing LangGraph or orchestration infrastructure
-if it is already part of the Runtime Agent.
+✓ Request received
+✓ Skill catalog reviewed
+✓ Skill selected
+✓ Parameters extracted
+✓ Parameters validated
+◌ Preparing execution…
 
-Do not create a second orchestrator if one already exists.
+The selected skill, procedure, and extracted parameters must come from the actual validated runtime result.
 
-The agent must correctly distinguish Forecast Outlook
-from Forecast Accuracy.
+Do not show parameter values unless they are safe to display and necessary for understanding the request.
 
-==================================================
-7. INTERACTIVE CHATBOT
-==================================================
+Stage 4 — MCP execution
 
-The UI must provide an interactive chatbot.
+When the approved tool call starts, make it the primary active operation:
 
-Users should be able to:
+◌ Retrieving forecast data…
+Snowflake MCP
+Tool: query_rma_forecast_rates
+Status: Running
 
-- Enter natural-language questions
-- Send messages
-- See their messages and agent responses
-- Continue asking follow-up questions
-- Maintain conversation context
-- See loading and processing states
-- See errors in a user-friendly way
-- Start a new conversation
-- View previous messages in the current conversation
+Use the actual tool and server metadata from the execution layer.
 
-Example conversation:
+The timeline should reflect real events:
 
-User:
-Show me the forecast for PID ABC123.
+✓ Approved execution prepared
+✓ Query validated
+✓ MCP connection established
+◌ Executing query…
+◌ Receiving results…
 
-Agent:
-Here is the forecast outlook for PID ABC123...
+Show only the stages the backend can verify. If connection setup is not separately instrumented, do not display it as an independent completed stage.
 
-User:
-What about forecast accuracy?
+If the execution is an Install Base question-passthrough operation, describe the actual lookup instead of pretending that a SQL query was generated.
 
-Agent:
-Here is the forecast accuracy for PID ABC123...
+Stage 5 — Results and response generation
 
-The second question should reuse the PID from the conversation
-when the context makes that interpretation unambiguous.
+Once the MCP call returns, display its confirmed outcome:
 
-If the question is ambiguous or missing required information,
-the agent should ask the user for clarification.
+✓ Forecast data retrieved
+  45 rows · 1.8s
 
-Do not fabricate forecast values.
+Use actual row counts and measured durations when available.
 
-==================================================
-8. STREAMING RESPONSES
-==================================================
+Then show:
 
-Inspect the existing Runtime Agent and service implementation
-for streaming support.
+✓ Results received
+◌ Preparing your response…
 
-If streaming is already supported, reuse it.
+The response-generation state must begin when the actual response-generation operation starts, not when a timer expires.
 
-Otherwise, implement streaming using the existing project
-patterns, preferably Server-Sent Events (SSE) if compatible.
+Stage 6 — Incremental answer streaming
 
-Expected behavior:
+Inspect whether the configured Response LLM supports native streaming.
 
-1. User submits a message.
-2. UI displays the user's message immediately.
-3. UI shows an assistant response in progress.
-4. Backend forwards the request to the Runtime Agent.
-5. Runtime Agent processes the request.
-6. The response is streamed through the service.
-7. UI renders the response as it arrives.
-8. UI marks the message as complete.
+If native streaming is supported, progressively render validated answer segments inside the same assistant message as they become available.
 
-Ensure that errors and interrupted streams are handled.
+The desired experience is:
 
-Do not introduce WebSockets unless the existing architecture
-requires them.
+◌ Preparing your response…
+The forecast outlook for ISR4451-X/K9 shows…
+[More validated answer content appears progressively]
 
-==================================================
-9. BACKEND SERVICE PROXY
-==================================================
+Requirements:
 
-Implement or extend the service API to support chat.
+* Use actual LLM streaming, not simulated browser typing.
+* Keep activity events separate from answer-content events.
+* Do not create a new assistant message for each token or delta.
+* Do not wait for the entire response if validated segments can safely be emitted earlier.
+* Preserve existing response formatting, result tables, exports, and follow-up prompts.
+* Prevent duplicated content when the final response arrives.
+* Preserve the current grounding, sanitization, and security checks.
 
-Follow existing endpoint naming and API conventions.
+If the provider does not support native streaming, retain the genuine activity timeline and display the complete validated response when ready. Report this limitation honestly.
 
-The service should:
+Stage 7 — Completed state
 
-- Accept a chat message from the UI.
-- Validate the request.
-- Forward it to the Runtime Agent.
-- Pass the conversation/session ID.
-- Forward the response or stream.
-- Return errors with appropriate status codes.
+When the request actually completes, collapse the activity to a compact summary:
 
-Use configuration for the Runtime Agent base URL.
+✓ Completed in 14.2s
+View activity ▾
 
-Do not hardcode service URLs, API keys, or credentials.
+The duration must reflect the actual request lifecycle.
 
-Preserve existing dashboard APIs.
+Keep the assistant answer visible below the summary.
 
-Do not break current dashboard functionality.
+The user must be able to expand the activity timeline to inspect the actual execution history.
 
-==================================================
-10. RUNTIME AGENT API
-==================================================
+Stage 8 — Failed state
 
-Inspect existing Runtime Agent endpoints first.
+If a real operation fails, show the failed stage and a concise, safe explanation.
 
-Reuse or extend existing chat and health endpoints
-instead of creating duplicate endpoints.
+Example:
 
-The Runtime Agent should accept a request containing
-the user message and conversation/session information.
+⚠ Failed to retrieve forecast data
+The data request could not be completed.
+View details
+Try again
 
-The response should contain the synthesized answer.
+A failed operation must never be marked completed. Retry must use the existing request-handling behavior and must not create duplicate MCP calls automatically.
 
-Preserve the existing API contract wherever possible.
+3. Implement the Visual Design from the Reference
 
-If the contract must change, update the service and UI
-consistently and document the change.
+Use the attached reference as the visual guide.
 
-==================================================
-11. MODEL CONFIGURATION
-==================================================
+The target should feel like a modern AI assistant, not an operational dashboard.
 
-Keep LLM model selection configurable.
+Default activity appearance
 
-Use the existing configuration mechanism.
+* Compact activity content embedded in the assistant message.
+* Subtle animated active-operation indicator.
+* Clear current-action label.
+* Completed actions shown in subdued text.
+* Skill and procedure metadata presented compactly.
+* Actual MCP tool details displayed without overwhelming the conversation.
+* Smooth transitions as real events arrive.
+* A collapsed activity history after completion.
 
-The model must be changeable without source-code changes.
+Animations
 
-Do not hardcode API keys.
+Implement restrained animations for:
 
-Read credentials from the existing secure configuration
-or environment variable mechanism.
+* Initial thinking indicator.
+* Active skill-selection or execution state.
+* Active MCP call.
+* New activity-line appearance.
+* Transition from activity to streamed answer.
+* Completed and failed states.
 
-Never expose credentials in:
+Animations must:
 
-- UI responses
-- Logs
-- Error messages
-- Generated documentation
+* Respond to actual state changes.
+* Avoid unnecessary movement and layout shifts.
+* Respect reduced-motion preferences.
+* Stop on completion, cancellation, or failure.
+* Avoid fake percentage progress.
+* Avoid artificial delays intended to make the agent appear busy.
 
-==================================================
-12. MCP INTEGRATION
-==================================================
+Remove the oversized dashboard-style card, unnecessary nested containers, excessive checkmarks, and hardcoded progress bars where they conflict with the reference.
 
-Reuse the working MCP integration from the CLI.
+4. Use One Real Event Stream
 
-The Runtime Agent must execute the appropriate MCP tool
-based on the selected skill and query.
+Reuse the current SSE connection and event protocol.
 
-Validate that:
+Inspect existing events such as:
 
-- Forecast Outlook selects the correct MCP/query.
-- Forecast Accuracy selects the correct MCP/query.
-- PID filters are passed correctly.
-- Product Family filters are passed correctly.
-- BU filters are passed correctly.
-- Product Life Cycle filters are passed correctly.
+agent, route, stage_start, stage_done, ping, complete, and error.
 
-Preserve the existing SQL/query templates and parameter
-handling.
+Add compatible events only where necessary for missing real operations or native response deltas.
 
-Do not allow the LLM to bypass the established query
-construction and validation logic.
+Every event must be emitted at the corresponding real operation boundary.
 
-Do not expose credentials or sensitive configuration.
+The frontend must correctly handle:
 
-==================================================
-13. RESPONSE SYNTHESIS
-==================================================
+* Multiple events within one network chunk.
+* Events split across network chunks.
+* Keepalive comments and pings.
+* Delayed and duplicate events.
+* Connection errors and cancellation.
+* Response deltas followed by the final response.
+* Correct association between events and their request/session IDs.
 
-Preserve the working response synthesis logic from the CLI.
+A missing backend event must not be fabricated in Angular.
 
-The agent should convert MCP results into a clear,
-useful answer for the planner.
+5. Execution Details Panel
 
-The answer should:
+Implement an expandable panel based on the reference.
 
-- Address the user's question
-- Use the returned data
-- Avoid inventing values
-- Handle empty results
-- Explain missing or unavailable data
-- Preserve relevant units and time periods
+When the actual metadata is available, show:
 
-If the MCP call fails, return a useful error message
-without fabricating a successful answer.
+Execution details
+Skill
+  Forecast
+Procedure
+  Outlook
+Execution
+  Approved script
+MCP server
+  Snowflake MCP
+Tool
+  query_rma_forecast_rates
+Query status
+  Prepared → Validated → Executed → Results received
+Result
+  45 rows
 
-==================================================
-14. UI INTEGRATION
-==================================================
+These are example values, not defaults.
 
-Inspect the existing Angular UI before implementing
-the chatbot.
+Bind the UI to actual execution metadata and measured timings.
 
-Follow the existing:
+Do not expose hidden prompts, chain-of-thought, credentials, tokens, sensitive internal URLs, raw exceptions, or unapproved SQL. Preserve existing authorized query-inspection functionality separately if it is already supported.
 
-- Component structure
-- Routing
-- State management
-- API service patterns
-- Styling conventions
-- Cisco theme/design system
-- Error handling patterns
+6. Preserve Existing Functionality
 
-Add the chatbot to the appropriate existing SDI page.
+This task is strictly for the real-time UI experience and the minimum supporting event changes.
 
-The chatbot should include:
+Do not modify:
 
-- Message history
-- User and assistant message styling
-- Input box
-- Send button
-- Enter-to-send behavior
-- Loading indicator
-- Streaming response rendering, if supported
-- Error display
-- New conversation action
+* Dynamic skill-selection business logic.
+* Multi-skill routing or execution planning.
+* SQL generation and validation.
+* MCP tool selection or execution semantics.
+* Redis checkpointing or conversation memory.
+* LangGraph architecture.
+* Authentication or authorization.
+* Unrelated application pages.
 
-Make the UI responsive and consistent with the existing
-application.
+Do not replace the current streaming architecture with a new implementation. Preserve the non-streaming API and existing chat features.
 
-Do not replace or break existing dashboard pages.
+7. Tests and Live Validation
 
-==================================================
-15. CONVERSATION STATE
-==================================================
+Test the activity lifecycle, including:
 
-Support multiple messages within a conversation.
+* Initial waiting state.
+* Actual request-start event.
+* Skill selection and parameter validation.
+* MCP execution start and completion.
+* Result processing.
+* Response-generation start.
+* Incremental answer deltas.
+* Final completion without duplicate text.
+* Failed MCP and LLM operations.
+* Stream disconnect and cancellation.
+* Duplicate and out-of-order events.
+* Expanded/collapsed activity history.
+* Reduced-motion accessibility.
+* Existing tables, exports, and follow-up interactions.
 
-Use a conversation/session ID to associate messages.
+Then run the actual development UI with the configured services.
 
-Inspect the current Runtime Agent state-management
-implementation and reuse it.
+Submit a real supported query and verify:
 
-Conversation context should be maintained by the Runtime Agent,
-not independently reconstructed by the UI.
+1. The activity appears immediately.
+2. Real events update the active operation.
+3. The selected skill and tool match the actual execution.
+4. The MCP operation displays its real running and completion states.
+5. The answer streams progressively if native streaming is supported.
+6. The final answer appears exactly once.
+7. The activity collapses into the completed state.
+8. Failures are displayed honestly.
+9. Existing chat behavior remains intact.
 
-Ensure that a new conversation starts with a clean state.
+Mocks alone are insufficient to claim end-to-end success.
 
-Do not leak context between different users or sessions.
+8. Final Report
 
-==================================================
-16. ERROR HANDLING
-==================================================
+Report:
 
-Handle errors across all layers.
+* The original cause of missing or outdated progress.
+* Existing events reused.
+* New real events added, if any.
+* UI components changed.
+* Whether native response streaming works.
+* Automated test results.
+* Real development validation results.
+* Remaining unsupported stages or blockers.
 
-Runtime Agent:
-- LLM errors
-- Routing errors
-- MCP errors
-- Invalid or missing parameters
-- Empty results
-- Synthesis errors
-
-Backend Service:
-- Runtime Agent unavailable
-- Request timeout
-- Invalid response
-- Stream interruption
-
-UI:
-- Network errors
-- Request failures
-- Stream interruption
-- Empty response
-- Retry where appropriate
-
-Do not expose internal stack traces or credentials
-to the user.
-
-Log useful diagnostic information using existing
-logging conventions.
-
-==================================================
-17. TESTING
-==================================================
-
-Preserve and reuse the standalone CLI's working tests
-where applicable.
-
-Add or update tests for:
-
-A. Forecast Outlook
-
-- PID
-- Product Family
-- BU
-- Product Life Cycle
-
-B. Forecast Accuracy
-
-- PID
-- Product Family
-- BU
-- Product Life Cycle
-
-C. Routing
-
-- Outlook versus Accuracy
-- Correct skill selection
-- Correct MCP selection
-- Correct dimension extraction
-- Ambiguous questions
-- Follow-up questions using conversation context
-
-D. Runtime Agent
-
-- Successful MCP execution
-- MCP failure
-- LLM failure
-- Empty result
-- Response synthesis
-
-E. Backend Service
-
-- Request forwarding
-- Runtime Agent timeout
-- Error propagation
-- Streaming proxy behavior
-
-F. UI
-
-- Sending a message
-- Rendering a response
-- Loading state
-- Error state
-- Follow-up conversation
-- New conversation
-
-Use mocks for automated tests where live credentials
-or external MCP connectivity are unavailable.
-
-Do not claim live integration tests passed unless
-they were actually executed.
-
-==================================================
-18. DOCUMENTATION
-==================================================
-
-Update the SDI design documentation to reflect the
-integrated architecture.
-
-Document:
-
-- Overall architecture
-- Runtime Agent responsibilities
-- Backend Service proxy responsibilities
-- UI responsibilities
-- Forecast Outlook flow
-- Forecast Accuracy flow
-- Skill and dimension routing
-- MCP integration
-- Conversation state
-- Streaming behavior
-- Configuration
-- Error handling
-- Deployment and local development
-
-Include a simple Mermaid architecture diagram.
-
-Also document how to start all three components locally.
-
-==================================================
-19. IMPLEMENTATION RULES
-==================================================
-
-Before changing code:
-
-1. Inspect all three repositories.
-2. Inspect the completed CLI implementation.
-3. Identify reusable components.
-4. Identify existing API contracts.
-5. Identify current streaming and state-management patterns.
-6. Create a migration plan.
-
-Then implement incrementally.
-
-Important constraints:
-
-- Do not modify unrelated functionality.
-- Do not duplicate agent logic.
-- Do not create a second orchestrator.
-- Do not replace working MCP integrations unnecessarily.
-- Do not hardcode credentials.
-- Do not bypass the service proxy.
-- Do not break dashboard APIs.
-- Do not modify production code outside the three
-  intended repositories.
-- Follow existing repository coding conventions.
-
-If an existing implementation conflicts with the
-standalone CLI, identify the conflict and explain
-the proposed resolution before making a major redesign.
-
-==================================================
-20. ACCEPTANCE CRITERIA
-==================================================
-
-The integration is complete only when:
-
-[ ] CLI agent logic is migrated into Runtime Agent.
-[ ] Runtime Agent owns LLM and agent orchestration.
-[ ] Forecast Outlook works.
-[ ] Forecast Accuracy works.
-[ ] All four dimensions work for both skills.
-[ ] Correct MCP tools are called.
-[ ] MCP results are synthesized into planner answers.
-[ ] Backend Service proxies chat requests.
-[ ] UI does not call MCP directly.
-[ ] UI communicates through the backend service.
-[ ] Interactive chatbot is integrated into the existing UI.
-[ ] Follow-up questions retain conversation context.
-[ ] New conversations start with clean state.
-[ ] Streaming works if supported by the architecture.
-[ ] Errors are handled across all layers.
-[ ] Existing dashboard APIs continue working.
-[ ] Tests are added or updated.
-[ ] SDI design documentation is updated.
-[ ] Local startup instructions are documented.
-[ ] No credentials are hardcoded.
-[ ] No unrelated production functionality is changed.
-
-==================================================
-21. FINAL REPORT
-==================================================
-
-When finished, provide:
-
-1. Architecture before and after.
-2. CLI modules reused.
-3. Runtime Agent files created or modified.
-4. Backend Service files created or modified.
-5. UI files created or modified.
-6. API contracts and endpoints.
-7. Conversation state implementation.
-8. Streaming implementation.
-9. MCP tools reused.
-10. Tests executed and their results.
-11. Any unresolved issues.
-12. Exact instructions to run the application locally.
-
-Do not stop after generating a migration plan.
-Implement the changes, run available tests, and report
-what was actually completed.
-
-FINAL GOAL:
-
-Replace the standalone CLI interaction with an
-interactive SDI chatbot in the existing Angular UI.
-
-The complete flow must be:
-
-Angular UI
-    → Backend Service
-    → Runtime Agent
-    → LLM routing
-    → Forecast skill
-    → MCP
-    → Response synthesis
-    → Backend Service
-    → Angular UI
-
-The existing standalone CLI is the working reference.
-Preserve its routing and response behavior while
-integrating it into the production SDI architecture.
+Do not claim that all stages stream in real time unless the actual runtime emits and the UI receives the corresponding events.
