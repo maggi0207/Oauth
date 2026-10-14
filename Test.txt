@@ -1,5 +1,1 @@
-Hi, I'm working on the Active IPR deletion API (FOREP-2703) and need some clarification on the database relationship.
-
-I couldn't find a direct link between a specific `ActiveIprId` and formulation records in the current schema. Do you know how we can determine whether an Active IPR is being used by a formulation, or if there's an existing relationship or business rule we should follow?
-
-This will help us implement the deletion safely without accidentally removing an Active IPR that's still in use.
+Just wanted to confirm that we’re on the same page regarding unit validation. We should restrict the maximum number of decimal digits only when the user manually enters a value, while allowing auto-calculated values without this restriction. Is that correct?
