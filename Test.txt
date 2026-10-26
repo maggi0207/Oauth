@@ -1,1 +1,105 @@
-Just wanted to confirm that we’re on the same page regarding unit validation. We should restrict the maximum number of decimal digits only when the user manually enters a value, while allowing auto-calculated values without this restriction. Is that correct?
+# Implement Active IPR DELETE API — FOREP-2703
+
+Implement the actual Active IPR deletion in the existing FACTS API and Formulation API integration. Follow the established Active IPR search, details, and service patterns. Do not create a separate database connection or introduce a new data-access pattern.
+
+## 1. Investigate the existing implementation first
+
+Trace the current flow:
+
+- `ActiveReactionController`
+- `IActiveReactionService`
+- `ActiveReactionService`
+- `IActiveReactionClient` / generated Formulation API client
+- Formulation API `ActiveReactionController`, `IActiveReactionService`, and `ActiveReactionService`
+- `ApplicationDbContext`
+- EF entities and migrations for `FormulationConceptActive`, `ActiveIpr`, `ActiveIprActive`, and `Reactant`
+
+Reuse the existing dependency injection, HTTP client, authentication, authorization, exception handling, logging, and response conventions. Preserve all unrelated working-tree changes.
+
+## 2. Wire the DELETE endpoint
+
+Implement:
+
+`DELETE /api/ActiveReaction/{activeIprId}`
+
+Use the existing integer ID convention and follow the established controller-to-service-to-client flow.
+
+- FACTS API delegates the request to the existing generated Formulation API client.
+- Formulation API performs the actual database operation using its existing `ApplicationDbContext`.
+- Regenerate the Formulation API client from the authoritative OpenAPI specification if needed. Do not hand-maintain duplicate generated DTOs or methods.
+- Preserve existing GET, POST, PUT, and search behavior.
+
+## 3. Check whether the Active IPR is in use
+
+The Formulation API database model now includes:
+
+- `FormulationConceptActive.ActiveIprId` (`int?`)
+- `FormulationConceptActive.ActiveIpr` navigation property
+- The existing `UseAeIpr` Boolean flag
+
+Use `FormulationConceptActive.ActiveIprId` as the direct relationship to check whether the requested Active IPR is referenced. Inspect the actual DEV-aligned EF model and migration to confirm the FK target and relationship before implementing the query.
+
+The initial safety rule is to block deletion when any `FormulationConceptActive` row references the requested `ActiveIprId`. Do not rely on matching active ingredient names, shared `ActiveId` values, `Reactant` rows, or the legacy `UseAeIpr` flag as substitutes for this relationship.
+
+If repository evidence or the agreed business rule contradicts this safety rule, stop and report the specific conflict rather than inventing a different usage check.
+
+## 4. Delete the parent and child records safely
+
+When the Active IPR exists and no formulation concept references it:
+
+- Delete the associated `ActiveIprActive` rows.
+- Delete the associated `Reactant` rows.
+- Delete the `ActiveIpr` parent record.
+
+Perform the operation atomically using the existing EF Core database context and a transaction where appropriate. The current child foreign keys use restrictive deletion behavior (`NO ACTION`), so handle the child rows explicitly before deleting the parent.
+
+If the usage check, child deletion, or parent deletion fails, roll back the transaction. Never report successful deletion unless the database operation actually succeeds.
+
+Do not modify the schema, add migrations, change the formulation save workflow, or alter the meaning of `UseAeIpr` unless the existing repository implementation requires it and the change is justified.
+
+## 5. Authorization and HTTP responses
+
+Follow the existing permission matrix and conventions.
+
+- Only `LeadChemist` may delete in normal environments.
+- Preserve existing GET, POST, and PUT permissions for `Chemist` and `LeadChemist`.
+- Preserve the existing Development-only Developer bypass.
+- Ensure the backend enforces authorization; hiding the UI button alone is insufficient.
+
+Use consistent responses:
+
+- `204 No Content` — deletion succeeded.
+- `404 Not Found` — the Active IPR does not exist.
+- `409 Conflict` — the Active IPR is referenced by a formulation concept and cannot be deleted.
+- Existing authorization and unexpected-error handling for other failures.
+
+Do not return success for a placeholder implementation or a request that did not delete anything.
+
+## 6. Tests
+
+Add or update focused tests for:
+
+1. Existing unused Active IPR is deleted successfully.
+2. Unknown ID returns `404`.
+3. An Active IPR referenced by `FormulationConceptActive.ActiveIprId` returns `409` and remains unchanged.
+4. Child rows are removed before the parent.
+5. A database failure rolls back the deletion.
+6. FACTS API correctly delegates the DELETE request and propagates the result.
+7. Only the authorized role can delete, while existing GET/POST/PUT permissions remain unchanged.
+
+Use existing test fixtures and mocking patterns. Avoid changing unrelated tests.
+
+## 7. Build and report
+
+Run the focused tests and relevant builds for both APIs. Review the final diff and ensure no unrelated files or pre-existing changes are overwritten.
+
+At completion, report:
+
+- Files changed and why.
+- Actual endpoint and client wiring.
+- The exact usage query and deletion transaction behavior.
+- Authorization and response-code behavior.
+- Tests/builds run and results.
+- Any remaining blocker, particularly if the FK or database schema does not match the expected DEV model.
+
+Do not claim the endpoint is fully functional unless the implementation, tests, and available integration evidence support that conclusion.
