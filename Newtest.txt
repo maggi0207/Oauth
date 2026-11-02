@@ -1,9 +1,1 @@
-Check how permissions.csv is converted into generated-permissions-matrix.json in both FACTS API and Formulation API.
-
-1. Find the actual generator script or tool.
-2. Identify the exact command used to generate JSON.
-3. Explain how the generated JSON is loaded and used at runtime.
-4. Verify whether the CSV and JSON are consistent.
-5. Check the Active IPR DELETE permission in both APIs.
-
-Give me a simple explanation with file names and commands. Do not modify any files.
+For this MR, I added the DELETE permission for LeadChemist in permissions.csv and updated the corresponding JSON with the explicit DELETE rule, keeping the existing permissions unchanged. I checked both files to make sure they were in sync. I couldn't find the generator in the repositories, so I updated the JSON manually, following the existing structure.
