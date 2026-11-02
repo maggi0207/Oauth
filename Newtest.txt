@@ -1,1 +1,9 @@
-Regarding the permissions matrix, I use permissions.csv as the source configuration and generate the corresponding generated-permissions-matrix.json used by the application at runtime.
+Check how permissions.csv is converted into generated-permissions-matrix.json in both FACTS API and Formulation API.
+
+1. Find the actual generator script or tool.
+2. Identify the exact command used to generate JSON.
+3. Explain how the generated JSON is loaded and used at runtime.
+4. Verify whether the CSV and JSON are consistent.
+5. Check the Active IPR DELETE permission in both APIs.
+
+Give me a simple explanation with file names and commands. Do not modify any files.
