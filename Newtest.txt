@@ -1,5 +1,1 @@
- Create an Active IPR search API similar to the existing Reactant search endpoint.
-Search using Bionexus BE numbers only. Users will enter a Bionexus BE number to search for the biological.
-You only need to implement this search functionality — nothing more is required for this story.
-
-Look at how the Reactant search endpoint works and follow the same approach for the Active IPR search, using the Bionexus BE number as the search criteria.
+Regarding the permissions matrix, I use permissions.csv as the source configuration and generate the corresponding generated-permissions-matrix.json used by the application at runtime.
