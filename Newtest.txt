@@ -1,1 +1,9 @@
-For this MR, I added the DELETE permission for LeadChemist in permissions.csv and updated the corresponding JSON with the explicit DELETE rule, keeping the existing permissions unchanged. I checked both files to make sure they were in sync. I couldn't find the generator in the repositories, so I updated the JSON manually, following the existing structure.
+I found the actual PermissionsGenerator project in GitLab: research/team-pi/PermissionsGenerator.
+
+Please inspect its README and Program.cs to understand how it works.
+
+Help me run this utility against my updated Formulation API permissions.csv and compare the generated JSON with my current generated-permissions-matrix.json.
+
+Do not overwrite my existing file before showing the differences. Do not modify unrelated files or commit anything.
+
+Report the exact command and any differences found.
